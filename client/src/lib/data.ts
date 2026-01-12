@@ -16,6 +16,8 @@ export interface Platform {
   cons: string[];
   url: string;
   logo?: string;
+  description: string;
+  screenshots: string[];
 }
 
 export const platforms: Platform[] = [
@@ -32,10 +34,12 @@ export const platforms: Platform[] = [
     tokenBased: true,
     customGPTs: true,
     customGPTDetails: 'Assistants',
-    features: ['GPT-4o', 'Claude', 'Gemini', 'Mistral', 'Dokumentenverarbeitung', 'Wissensmanagement', 'API-Zugang', 'SSO/SAML'],
+    features: ['GPT-4o', 'Claude', 'Gemini', 'Mistral', 'Dokumentenverarbeitung', 'Wissensmanagement', 'API-Zugang', 'SSO/SAML', 'Team-Collaboration', 'Prompt-Management'],
     pros: ['Umfangreiche Modellauswahl', 'Y Combinator-backed', 'Exzellente Compliance', 'Intuitive UI'],
     cons: ['Relativ hoher Preis pro User', 'Junges Unternehmen', 'API-Aufschlag von 10%'],
-    url: 'https://www.langdock.com'
+    url: 'https://www.langdock.com',
+    description: 'Langdock ist eine führende DSGVO-konforme Chat-Plattform aus Berlin, die es Unternehmen ermöglicht, verschiedene LLMs (wie GPT-4, Claude, etc.) sicher zu nutzen. Sie zeichnet sich durch eine besonders intuitive Benutzeroberfläche und starke Compliance-Features aus. Unternehmen können eigene Assistenten erstellen, Dokumente hochladen und im Team zusammenarbeiten, ohne dass Daten für das Training der KI-Modelle verwendet werden.',
+    screenshots: ['/images/screenshots/langdock-dashboard.png', '/images/screenshots/langdock-chat.png']
   },
   {
     id: 'ka1ai',
@@ -48,12 +52,14 @@ export const platforms: Platform[] = [
     pricingModel: 'Nutzungsbasiert',
     basePrice: 'k.A.',
     tokenBased: true,
-    customGPTs: false, // k.A. in research, assuming false/unknown for filter safety or clarify in UI
+    customGPTs: false,
     customGPTDetails: 'k.A.',
-    features: ['Mehrere Modelle', 'Dokumentenverarbeitung'],
+    features: ['Mehrere Modelle', 'Dokumentenverarbeitung', 'Datenschutz-Fokus'],
     pros: ['Nutzungsbasierte Abrechnung', 'DSGVO-konform', 'Deutsches Unternehmen'],
     cons: ['Noch in Early Access', 'Wenig öffentliche Informationen', 'Unklarer Funktionsumfang'],
-    url: 'https://ka1.ai'
+    url: 'https://ka1.ai',
+    description: 'ka1.ai ist eine neue Plattform der kai.zen GmbH, die sich auf datenschutzkonforme KI-Nutzung spezialisiert. Aktuell befindet sich das Angebot noch in einer frühen Phase (Early Access). Der Fokus liegt auf einer fairen, nutzungsbasierten Abrechnung und der strikten Einhaltung deutscher Datenschutzstandards.',
+    screenshots: ['/images/screenshots/ka1ai-dashboard.png']
   },
   {
     id: 'logicc',
@@ -68,10 +74,12 @@ export const platforms: Platform[] = [
     tokenBased: false,
     customGPTs: true,
     customGPTDetails: 'Assistenten',
-    features: ['GPT-4o', 'Claude', 'Gemini', 'Llama', 'Dokumentenverarbeitung', 'Wissensmanagement', 'API-Zugang', 'SSO (Enterprise)'],
+    features: ['GPT-4o', 'Claude', 'Gemini', 'Llama', 'Dokumentenverarbeitung', 'Wissensmanagement', 'API-Zugang', 'SSO (Enterprise)', 'Zentrale Verwaltung'],
     pros: ['Günstiger Einstiegspreis', 'Kein KI-Training', 'Zentrale Plattform', 'EU-Hosting'],
     cons: ['Kleineres Team', 'Weniger etabliert', 'Begrenzte Enterprise-Features'],
-    url: 'https://www.logicc.com'
+    url: 'https://www.logicc.com',
+    description: 'Logicc bietet eine zentrale KI-Plattform für Unternehmen, die Wert auf Datenschutz und Einfachheit legen. Mit einem attraktiven Einstiegspreis und Hosting in der EU richtet sich Logicc an kleine und mittelständische Unternehmen, die ihren Mitarbeitern Zugang zu Top-Modellen wie GPT-4 und Claude geben wollen, ohne Kompromisse beim Datenschutz einzugehen.',
+    screenshots: ['/images/screenshots/logicc-dashboard.png']
   },
   {
     id: 'plotdesk',
@@ -86,10 +94,12 @@ export const platforms: Platform[] = [
     tokenBased: true,
     customGPTs: true,
     customGPTDetails: 'Use Cases',
-    features: ['50+ Modelle', 'Dokumentenverarbeitung', 'Wissensmanagement', 'API-Zugang', 'SSO'],
+    features: ['50+ Modelle', 'Dokumentenverarbeitung', 'Wissensmanagement', 'API-Zugang', 'SSO', 'White-Label Option'],
     pros: ['Über 50 KI-Modelle', '10.000+ aktive Nutzer', 'Namhafte Referenzkunden', 'Schnelles Setup'],
     cons: ['Preise nur über Partner', 'Weniger transparente Preisgestaltung'],
-    url: 'https://plotdesk.com'
+    url: 'https://plotdesk.com',
+    description: 'Plotdesk positioniert sich als umfassende KI-Plattform mit einer riesigen Auswahl von über 50 KI-Modellen. Die Lösung wird auf deutschen Servern gehostet und bietet umfangreiche Enterprise-Features. Plotdesk wird oft über Partner vertrieben und ist bei größeren deutschen Mittelständlern im Einsatz.',
+    screenshots: ['/images/screenshots/plotdesk-dashboard.png']
   },
   {
     id: 'kamium',
@@ -101,13 +111,15 @@ export const platforms: Platform[] = [
     compliance: ['Private Cloud', 'Azure', 'DSGVO'],
     pricingModel: 'Hybrid',
     basePrice: '€600/Monat (30 User)',
-    tokenBased: true, // €10/zusätzl. User implies scaling, but strictly token based? Research said €10/user. Let's keep as Hybrid.
+    tokenBased: true,
     customGPTs: true,
     customGPTDetails: 'Assistenten',
-    features: ['GPT-4o', 'Claude', 'Gemini', 'Dokumentenverarbeitung', 'Wissensmanagement', 'API-Zugang', 'SSO'],
+    features: ['GPT-4o', 'Claude', 'Gemini', 'Dokumentenverarbeitung', 'Wissensmanagement', 'API-Zugang', 'SSO', 'Beratung inklusive'],
     pros: ['15+ Jahre Erfahrung', 'Private Cloud', 'Starker Support', 'Umfassende Beratung'],
     cons: ['Höherer Einstiegspreis', 'Mindestens 30 User', 'Für kleine Teams teuer'],
-    url: 'https://www.kamium.de'
+    url: 'https://www.kamium.de',
+    description: 'Hinter kamium steht die erfahrene Software-Agentur Zweitag aus Münster. Die Lösung besticht durch ein Private-Cloud-Setup in einer eigenen Azure-Umgebung, was höchste Datensicherheit garantiert. Das Angebot richtet sich vor allem an den Mittelstand und beinhaltet oft auch Beratungsleistungen zur KI-Einführung.',
+    screenshots: ['/images/screenshots/kamium-dashboard.png']
   },
   {
     id: 'patrisai',
@@ -122,10 +134,12 @@ export const platforms: Platform[] = [
     tokenBased: false,
     customGPTs: true,
     customGPTDetails: 'Assistenten Baukasten',
-    features: ['GPT-4o', 'Claude', 'Gemini', 'Dokumentenverarbeitung', 'Wissensmanagement', 'API-Zugang', 'SSO'],
+    features: ['GPT-4o', 'Claude', 'Gemini', 'Dokumentenverarbeitung', 'Wissensmanagement', 'API-Zugang', 'SSO', 'Baukasten-System'],
     pros: ['Günstiger Starter-Tarif', 'KI Bundesverband Mitglied', 'Assistenten-Baukasten', 'Deutsche Server'],
     cons: ['Weniger bekannt', 'Begrenzte öffentliche Informationen'],
-    url: 'https://patris.ai'
+    url: 'https://patris.ai',
+    description: 'patris.ai bietet einen sehr günstigen Einstieg in die Welt der Unternehmens-KI. Mit einem Fokus auf einen "Assistenten-Baukasten" können Unternehmen einfach eigene Workflows automatisieren. Als Mitglied im KI Bundesverband legt patris großen Wert auf Compliance und Hosting in Deutschland.',
+    screenshots: ['/images/screenshots/patris-dashboard.png']
   },
   {
     id: 'basegpt',
@@ -140,10 +154,12 @@ export const platforms: Platform[] = [
     tokenBased: true,
     customGPTs: true,
     customGPTDetails: 'Custom Models',
-    features: ['ChatGPT', 'Claude', 'Dokumentenverarbeitung', 'Wissensmanagement', 'API-Zugang', 'SSO'],
+    features: ['ChatGPT', 'Claude', 'Dokumentenverarbeitung', 'Wissensmanagement', 'API-Zugang', 'SSO', 'Managed Service'],
     pros: ['Vollständig verwaltet', 'EU-Datenresidenz', 'Branchenspezifische Lösungen'],
     cons: ['Preise nur auf Anfrage', 'Weniger Transparenz'],
-    url: 'https://basegpt.eu'
+    url: 'https://basegpt.eu',
+    description: 'BaseGPT ist eine vollständig verwaltete KI-Plattform, die sich durch branchenspezifische Lösungen auszeichnet. Sie bietet EU-Datenresidenz und richtet sich an Unternehmen, die eine "Rundum-sorglos"-Lösung suchen und weniger selbst konfigurieren möchten.',
+    screenshots: ['/images/screenshots/basegpt-dashboard.png']
   },
   {
     id: 'dsgpt',
@@ -155,13 +171,15 @@ export const platforms: Platform[] = [
     compliance: ['On-Premise', 'DSGVO'],
     pricingModel: 'Einmalzahlung',
     basePrice: '€2.495 (Lifetime)',
-    tokenBased: true, // API Kosten
+    tokenBased: true,
     customGPTs: true,
     customGPTDetails: 'Prompts',
-    features: ['GPT-4o', 'Llama', 'DeepSeek', 'Mistral', 'Dokumentenverarbeitung', 'Wissensmanagement', 'API-Zugang', 'SSO'],
+    features: ['GPT-4o', 'Llama', 'DeepSeek', 'Mistral', 'Dokumentenverarbeitung', 'Wissensmanagement', 'API-Zugang', 'SSO', 'Lokale Modelle'],
     pros: ['Einmalzahlung (Lifetime)', 'Keine monatlichen Kosten', 'Volle Datenkontrolle', 'Lokale Modelle'],
     cons: ['On-Premise Installation nötig', 'Höhere Anfangsinvestition', 'Selbst-Hosting', 'Support kostenpflichtig'],
-    url: 'https://dsgpt.de'
+    url: 'https://dsgpt.de',
+    description: 'DSGPT geht einen Sonderweg mit einem Lifetime-Lizenzmodell. Statt monatlicher Gebühren zahlen Unternehmen einmalig für die Software, die sie dann On-Premise oder auf eigenen Servern betreiben. Das bietet maximale Datenkontrolle und Unabhängigkeit, erfordert aber auch mehr eigene IT-Ressourcen.',
+    screenshots: ['/images/screenshots/dsgpt-dashboard.png']
   },
   {
     id: 'neleai',
@@ -176,10 +194,12 @@ export const platforms: Platform[] = [
     tokenBased: true,
     customGPTs: true,
     customGPTDetails: 'Prompt-Bibliothek',
-    features: ['Mehrere Modelle', 'Dokumentenverarbeitung', 'Wissensmanagement', 'API-Zugang'],
+    features: ['Mehrere Modelle', 'Dokumentenverarbeitung', 'Wissensmanagement', 'API-Zugang', 'Umfangreiche Prompt-Bibliothek'],
     pros: ['ISO 27001 zertifiziert', 'Nutzungsbasierte Credits', 'Keine Kosten pro User', 'Deutscher Server'],
     cons: ['Weniger bekannte Marke', 'Preise nicht transparent'],
-    url: 'https://www.nele.ai'
+    url: 'https://www.nele.ai',
+    description: 'nele.ai von der GAL Digital GmbH setzt auf ein reines Credit-Modell ohne monatliche Nutzergebühren. Das macht es ideal für Teams mit stark schwankender Nutzung. Die Plattform ist ISO 27001 zertifiziert und bietet eine umfangreiche Bibliothek an vorgefertigten Prompts für den schnellen Einstieg.',
+    screenshots: ['/images/screenshots/neleai-dashboard.png']
   },
   {
     id: 'amberai',
@@ -191,13 +211,15 @@ export const platforms: Platform[] = [
     compliance: ['ISO 27001', 'DSGVO'],
     pricingModel: 'Enterprise',
     basePrice: 'Auf Anfrage',
-    tokenBased: false, // k.A.
+    tokenBased: false,
     customGPTs: true,
     customGPTDetails: 'AI Assistants',
-    features: ['Mehrere Modelle', 'Dokumentenverarbeitung', 'Wissensmanagement (Kern)', 'API-Zugang', 'SSO'],
+    features: ['Mehrere Modelle', 'Dokumentenverarbeitung', 'Wissensmanagement (Kern)', 'API-Zugang', 'SSO', 'Enterprise Search'],
     pros: ['Europäischer Marktführer', 'Starkes Wissensmanagement', 'ISO 27001 zertifiziert', 'Etabliert'],
     cons: ['Enterprise-Fokus', 'Teuer', 'Nicht für kleine Teams', 'Preise intransparent'],
-    url: 'https://ambersearch.de'
+    url: 'https://ambersearch.de',
+    description: 'amberAI (AmberSearch) kommt ursprünglich aus dem Bereich Enterprise Search und hat diese Stärke in die KI-Welt übertragen. Die Plattform ist besonders stark im Wissensmanagement und der Vernetzung interner Datenquellen. Sie richtet sich klar an größere Unternehmen und Konzerne.',
+    screenshots: ['/images/screenshots/amberai-dashboard.png']
   },
   {
     id: 'aiui',
@@ -209,13 +231,15 @@ export const platforms: Platform[] = [
     compliance: ['On-Premise Option', 'DSGVO'],
     pricingModel: 'Projekt',
     basePrice: 'Auf Anfrage',
-    tokenBased: false, // k.A.
+    tokenBased: false,
     customGPTs: true,
     customGPTDetails: 'Chat Assistants',
-    features: ['Mehrere Modelle', 'Dokumentenverarbeitung', 'Wissensmanagement', 'API-Zugang', 'SSO'],
+    features: ['Mehrere Modelle', 'Dokumentenverarbeitung', 'Wissensmanagement', 'API-Zugang', 'SSO', 'Individuelle Entwicklung'],
     pros: ['Full-Service Partner', 'On-Premise Option', 'Individuelle Lösungen'],
     cons: ['Projektbasierte Preise', 'Weniger Self-Service', 'Evtl. überdimensioniert'],
-    url: 'https://ai-ui.ai'
+    url: 'https://ai-ui.ai',
+    description: 'AI-UI versteht sich weniger als reiner Software-Anbieter, sondern als Full-Service-Partner. Mit der AIVA-Plattform bieten sie eine Basis, die oft in individuellen Projekten an die Kundenbedürfnisse angepasst wird. Auch On-Premise-Optionen sind möglich.',
+    screenshots: ['/images/screenshots/aiui-dashboard.png']
   },
   {
     id: 'mistral',
@@ -227,12 +251,14 @@ export const platforms: Platform[] = [
     compliance: ['EU-Unternehmen', 'DSGVO'],
     pricingModel: 'Pro User',
     basePrice: '€14,99/User/Monat',
-    tokenBased: false, // Enterprise custom
+    tokenBased: false,
     customGPTs: true,
     customGPTDetails: 'Agents',
-    features: ['Mistral Large', 'Mistral Medium', 'Dokumentenverarbeitung', 'Wissensmanagement', 'API-Zugang', 'SSO (Enterprise)'],
+    features: ['Mistral Large', 'Mistral Medium', 'Dokumentenverarbeitung', 'Wissensmanagement', 'API-Zugang', 'SSO (Enterprise)', 'Canvas'],
     pros: ['EU-Unternehmen', 'Günstige Pro-Tarife', 'Eigene Modelle', 'Starke Forschung'],
     cons: ['Weniger Enterprise-Features', 'Kein deutsches Unternehmen', 'Weniger Modellvielfalt'],
-    url: 'https://mistral.ai'
+    url: 'https://mistral.ai',
+    description: 'Mistral AI ist Europas Antwort auf OpenAI. Mit "Le Chat" bieten sie eine leistungsfähige Chat-Oberfläche für ihre eigenen Modelle (Mistral Large, etc.). Es ist eine solide, europäische Alternative, die allerdings weniger auf die Integration von Drittanbieter-Modellen setzt als die anderen Plattformen.',
+    screenshots: ['/images/screenshots/mistral-dashboard.png']
   }
 ];

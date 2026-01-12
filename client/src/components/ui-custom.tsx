@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
-import { Check, X, ExternalLink, Shield, Building2, Users, Coins } from "lucide-react";
+import { Check, X, ExternalLink, Shield, Building2, Users, Coins, ArrowRight } from "lucide-react";
+import { Link } from "wouter";
 
 export const SectionHeading = ({ children, className }: { children: React.ReactNode; className?: string }) => (
   <h2 className={cn("text-3xl font-bold tracking-tight text-slate-900 mb-6", className)}>
@@ -73,27 +74,34 @@ export const PlatformCard = ({ platform, onCompare, isSelected }: { platform: an
         </div>
       </div>
 
-      <div className="bg-slate-50 p-4 border-t border-slate-100 flex items-center justify-between gap-3">
-        <button 
-          onClick={() => onCompare(platform.id)}
-          className={cn(
-            "flex-1 text-sm font-medium py-2 px-3 rounded-lg transition-colors",
-            isSelected 
-              ? "bg-orange-100 text-orange-700 hover:bg-orange-200" 
-              : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900"
-          )}
-        >
-          {isSelected ? "Ausgewählt" : "Vergleichen"}
-        </button>
-        <a 
-          href={platform.url} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="p-2 text-slate-400 hover:text-orange-500 transition-colors"
-          title="Zur Website"
-        >
-          <ExternalLink className="h-5 w-5" />
-        </a>
+      <div className="bg-slate-50 p-4 border-t border-slate-100 flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-3">
+          <button 
+            onClick={() => onCompare(platform.id)}
+            className={cn(
+              "flex-1 text-sm font-medium py-2 px-3 rounded-lg transition-colors",
+              isSelected 
+                ? "bg-orange-100 text-orange-700 hover:bg-orange-200" 
+                : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+            )}
+          >
+            {isSelected ? "Ausgewählt" : "Vergleichen"}
+          </button>
+          <a 
+            href={platform.url} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="p-2 text-slate-400 hover:text-orange-500 transition-colors"
+            title="Zur Website"
+          >
+            <ExternalLink className="h-5 w-5" />
+          </a>
+        </div>
+        <Link href={`/platform/${platform.id}`}>
+          <button className="w-full text-sm font-medium py-2 px-3 rounded-lg bg-slate-900 text-white hover:bg-slate-800 transition-colors flex items-center justify-center group-hover:bg-orange-500">
+            Details ansehen <ArrowRight className="ml-2 h-4 w-4" />
+          </button>
+        </Link>
       </div>
     </div>
   );
