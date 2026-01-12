@@ -5,6 +5,8 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import * as db from "./db";
+import { notifyNewLead, notifyNewReview, notifyNewComment, notifyNewSuggestion, notifyNewSubscriber } from "./services/email";
+import { checkForSpam, getModerationPriority } from "./services/spam";
 
 // Admin middleware
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -150,8 +152,40 @@ export const appRouter = router({
         content: z.string().min(1)
       }))
       .mutation(async ({ input }) => {
-        await db.createComment(input);
-        return { success: true, message: 'Kommentar eingereicht. Er wird nach Prüfung veröffentlicht.' };
+        // Check for spam
+        const spamCheck = checkForSpam(input.content, input.authorName, input.authorEmail);
+        const priority = getModerationPriority(spamCheck.score);
+        
+        // Log spam detection result
+        console.log(`[Spam] Comment from ${input.authorName}: score=${spamCheck.score}, isSpam=${spamCheck.isSpam}, priority=${priority}`);
+        if (spamCheck.reasons.length > 0) {
+          console.log(`[Spam] Reasons: ${spamCheck.reasons.join(', ')}`);
+        }
+        
+        // Create comment with spam metadata
+        await db.createComment({
+          ...input,
+          // If spam score is very high, mark for urgent review
+          // The status will still be 'pending' but admin can see priority
+        });
+        
+        // Get post title for email notification
+        const post = await db.getBlogPostById(input.postId);
+        
+        // Only send notification if not likely spam (to avoid alert fatigue)
+        if (!spamCheck.isSpam) {
+          notifyNewComment({
+            authorName: input.authorName,
+            content: input.content,
+            postTitle: post?.title
+          }).catch(err => console.error('[Email] Failed to send comment notification:', err));
+        }
+        
+        return { 
+          success: true, 
+          message: 'Kommentar eingereicht. Er wird nach Prüfung veröffentlicht.',
+          spamScore: spamCheck.score // Return for debugging
+        };
       }),
     
     updateStatus: adminProcedure
@@ -162,6 +196,25 @@ export const appRouter = router({
       .mutation(async ({ input, ctx }) => {
         await db.updateCommentStatus(input.id, input.status, ctx.user?.id);
         return { success: true };
+      }),
+    
+    // Bulk actions
+    bulkUpdateStatus: adminProcedure
+      .input(z.object({
+        ids: z.array(z.number()),
+        status: z.enum(['pending', 'approved', 'rejected'])
+      }))
+      .mutation(async ({ input, ctx }) => {
+        let successCount = 0;
+        for (const id of input.ids) {
+          try {
+            await db.updateCommentStatus(id, input.status, ctx.user?.id);
+            successCount++;
+          } catch (error) {
+            console.error(`[Bulk] Failed to update comment ${id}:`, error);
+          }
+        }
+        return { success: true, updatedCount: successCount, totalCount: input.ids.length };
       }),
   }),
 
@@ -196,6 +249,16 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         await db.createReview(input);
+        // Get platform name for email notification
+        const platform = await db.getPlatformById(input.platformId);
+        // Send email notification (non-blocking)
+        notifyNewReview({
+          authorName: input.authorName,
+          rating: input.rating,
+          title: input.title,
+          content: input.content,
+          platformName: platform?.name
+        }).catch(err => console.error('[Email] Failed to send review notification:', err));
         return { success: true, message: 'Bewertung eingereicht. Sie wird nach Prüfung veröffentlicht.' };
       }),
     
@@ -207,6 +270,25 @@ export const appRouter = router({
       .mutation(async ({ input, ctx }) => {
         await db.updateReviewStatus(input.id, input.status, ctx.user?.id);
         return { success: true };
+      }),
+    
+    // Bulk actions
+    bulkUpdateStatus: adminProcedure
+      .input(z.object({
+        ids: z.array(z.number()),
+        status: z.enum(['pending', 'approved', 'rejected'])
+      }))
+      .mutation(async ({ input, ctx }) => {
+        let successCount = 0;
+        for (const id of input.ids) {
+          try {
+            await db.updateReviewStatus(id, input.status, ctx.user?.id);
+            successCount++;
+          } catch (error) {
+            console.error(`[Bulk] Failed to update review ${id}:`, error);
+          }
+        }
+        return { success: true, updatedCount: successCount, totalCount: input.ids.length };
       }),
   }),
 
@@ -232,6 +314,15 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         await db.createLead(input);
+        // Send email notification (non-blocking)
+        notifyNewLead({
+          name: input.name,
+          email: input.email,
+          company: input.company,
+          platformName: input.platformName,
+          interest: input.interest,
+          message: input.message
+        }).catch(err => console.error('[Email] Failed to send lead notification:', err));
         return { success: true, message: 'Anfrage erfolgreich gesendet. Wir melden uns in Kürze.' };
       }),
     
@@ -262,6 +353,11 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         await db.subscribeToNewsletter(input.email, input.name);
+        // Send email notification (non-blocking)
+        notifyNewSubscriber({
+          email: input.email,
+          name: input.name
+        }).catch(err => console.error('[Email] Failed to send subscriber notification:', err));
         return { success: true, message: 'Erfolgreich zum Newsletter angemeldet!' };
       }),
     
@@ -292,6 +388,13 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         await db.createSuggestion(input);
+        // Send email notification (non-blocking)
+        notifyNewSuggestion({
+          type: input.type,
+          platformName: input.platformName,
+          description: input.description,
+          submitterEmail: input.submitterEmail
+        }).catch(err => console.error('[Email] Failed to send suggestion notification:', err));
         return { success: true, message: 'Vielen Dank für Ihren Vorschlag!' };
       }),
     

@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
+import { SEO, SEOPresets } from "@/components/SEO";
 import { PlatformCard, FeatureBadge, ProsList, ConsList } from "@/components/ui-custom";
 import { Search, X, ArrowRightLeft, CheckCircle2, Info, ExternalLink, Download, Loader2 } from "lucide-react";
 import { exportComparisonToPDF } from "@/lib/pdf-export";
@@ -128,7 +129,9 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
+    <>
+      <SEO {...SEOPresets.home} />
+      <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
       {/* Hero Section */}
       <header className="relative bg-[#0F172A] text-white overflow-hidden">
         <div className="absolute inset-0 opacity-20">
@@ -194,7 +197,7 @@ export default function Home() {
               <div className="flex items-center gap-3 overflow-hidden">
                 <span className="text-sm font-medium text-slate-400 whitespace-nowrap hidden sm:inline">Vergleich:</span>
                 <div className="flex -space-x-2">
-                  {selectedPlatformsData.map(p => (
+                  {selectedPlatformsData.map((p: Platform) => (
                     <div key={p.id} className="h-10 w-10 rounded-full bg-slate-800 border-2 border-[#0F172A] flex items-center justify-center text-xs font-bold text-white" title={p.name}>
                       {p.name.substring(0, 2)}
                     </div>
@@ -245,7 +248,7 @@ export default function Home() {
                         </div>
 
                         {/* Platform Columns */}
-                        {selectedPlatformsData.map(p => (
+                        {selectedPlatformsData.map((p: Platform) => (
                           <div key={p.id} className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-8">
                             <div className="h-20 border-b border-slate-100 pb-4 mb-4">
                               <h3 className="text-xl font-bold text-slate-900">{p.name}</h3>
@@ -274,7 +277,7 @@ export default function Home() {
                             <div className="space-y-1">
                               <div className="md:hidden text-xs font-semibold text-slate-400 uppercase">Compliance</div>
                               <div className="flex flex-wrap gap-1">
-                                {(p.compliance || []).map(c => (
+                                {(p.compliance || []).map((c: string) => (
                                   <span key={c} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
                                     <CheckCircle2 className="h-3 w-3 mr-1" /> {c}
                                   </span>
@@ -293,7 +296,7 @@ export default function Home() {
                             <div className="h-auto md:h-32 overflow-y-auto">
                               <div className="md:hidden text-xs font-semibold text-slate-400 uppercase mb-2">Features</div>
                               <div className="flex flex-wrap gap-1">
-                                {(p.features || []).map(f => (
+                                {(p.features || []).map((f: string) => (
                                   <FeatureBadge key={f}>{f}</FeatureBadge>
                                 ))}
                               </div>
@@ -339,7 +342,7 @@ export default function Home() {
           <div className="flex-1">
             {/* Platform Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
-              {filteredPlatforms.map((platform) => (
+              {filteredPlatforms.map((platform: Platform) => (
                 <PlatformCard 
                   key={platform.id} 
                   platform={{
@@ -408,5 +411,6 @@ export default function Home() {
         </div>
       </footer>
     </div>
+    </>
   );
 }

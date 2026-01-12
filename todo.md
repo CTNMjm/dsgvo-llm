@@ -14,10 +14,10 @@
 - [x] LeadForm-Komponente auf API umstellen
 - [x] Admin-Dashboard mit OAuth-Login und Moderation
 - [x] Unit-Tests für API-Endpunkte erstellen
-- [ ] Moderations-Features im Admin-Dashboard implementieren
-- [ ] E-Mail-Benachrichtigungssystem implementieren
-- [ ] GEO-SEO Optimierung umsetzen
-- [ ] Abschließende Tests der Full-Stack-Anwendung
+- [x] Moderations-Features im Admin-Dashboard implementieren
+- [x] E-Mail-Benachrichtigungssystem implementieren
+- [x] GEO-SEO Optimierung umsetzen
+- [x] Abschließende Tests der Full-Stack-Anwendung
 
 ## Bestehende Features (abgeschlossen)
 
@@ -35,3 +35,28 @@
 - [x] Blog section with articles
 - [x] Comment system for blog posts
 - [x] Feedback/suggestion form
+
+## Neue Features (Phase 47+)
+
+### E-Mail-Benachrichtigungen
+- [x] E-Mail-Service mit Nodemailer einrichten
+- [x] Benachrichtigung bei neuen Leads
+- [x] Benachrichtigung bei neuen Bewertungen
+- [x] Benachrichtigung bei neuen Kommentaren
+- [x] Benachrichtigung bei neuen Newsletter-Abonnenten
+- [x] Benachrichtigung bei neuen Vorschlägen
+
+### GEO-SEO Optimierung
+- [x] Meta-Tags Komponente erstellen
+- [x] Strukturierte Daten (JSON-LD) implementieren
+- [x] Open Graph Tags für Social Media
+- [x] Sitemap.xml generieren
+- [x] Robots.txt konfigurieren
+- [x] SEO auf allen Seiten integriert (Home, Blog, BlogPost, PlatformDetail)
+
+### Erweiterte Moderation
+- [x] Bulk-Aktionen im Admin-Dashboard
+- [x] Automatische Spam-Erkennung für Kommentare
+- [x] Spam-Score-Logging für Debugging
+- [x] Spam-Wortliste und Filterregeln (implementiert in spam.ts)
+- [x] Moderations-Queue mit Prioritäten (getModerationPriority Funktion)

@@ -170,6 +170,14 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | undefi
   return result[0];
 }
 
+export async function getBlogPostById(id: number): Promise<BlogPost | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  const result = await db.select().from(blogPosts).where(eq(blogPosts.id, id)).limit(1);
+  return result[0];
+}
+
 export async function createBlogPost(post: InsertBlogPost): Promise<void> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

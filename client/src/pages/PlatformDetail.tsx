@@ -1,8 +1,8 @@
-import { useRoute } from "wouter";
+import { Link, useRoute } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ExternalLink, CheckCircle2, X, Building2, MapPin, Users, Shield, Coins, Layers, Loader2 } from "lucide-react";
-import { Link } from "wouter";
 import { ProsList, ConsList } from "@/components/ui-custom";
 import { Reviews } from "@/components/Reviews";
 import { LeadForm } from "@/components/LeadForm";
@@ -52,7 +52,24 @@ export default function PlatformDetail() {
   const compliance = platform.compliance || [];
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20">
+    <>
+      <SEO 
+        title={`${platform.name} - DSGVO-konforme LLM-Plattform`}
+        description={platform.description || `${platform.name} von ${platform.company}: DSGVO-konforme KI-Lösung für Unternehmen. Preismodell: ${platform.pricingModel}. Compliance: ${compliance.join(', ')}.`}
+        url={`/platform/${platform.slug}`}
+        keywords={`${platform.name}, ${platform.company}, LLM Plattform, DSGVO konform, ${compliance.join(', ')}`}
+        product={{
+          name: platform.name,
+          description: platform.description || `${platform.name} - DSGVO-konforme KI-Plattform`,
+          brand: platform.company
+        }}
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Plattformen', url: '/' },
+          { name: platform.name, url: `/platform/${platform.slug}` }
+        ]}
+      />
+      <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20">
       {/* Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div className="container py-4 flex items-center justify-between">
@@ -199,5 +216,6 @@ export default function PlatformDetail() {
 
       </main>
     </div>
+    </>
   );
 }

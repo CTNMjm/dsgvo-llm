@@ -2,17 +2,22 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LayoutDashboard, MessageSquare, Users, FileText, CheckCircle2, XCircle, Trash2, Loader2, Mail, AlertCircle, Star, LogOut } from "lucide-react";
+import { LayoutDashboard, MessageSquare, Users, FileText, CheckCircle2, XCircle, Loader2, Mail, AlertCircle, Star, LogOut, CheckSquare, Square } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function Admin() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const utils = trpc.useUtils();
+  
+  // Selection state for bulk actions
+  const [selectedComments, setSelectedComments] = useState<number[]>([]);
+  const [selectedReviews, setSelectedReviews] = useState<number[]>([]);
   
   // Check if user is admin
   const isAdmin = user?.role === 'admin';
@@ -56,10 +61,26 @@ export default function Admin() {
     }
   });
   
+  const bulkUpdateReviewStatus = trpc.reviews.bulkUpdateStatus.useMutation({
+    onSuccess: (data) => {
+      toast.success(`${data.updatedCount} Bewertungen aktualisiert`);
+      utils.reviews.listAll.invalidate();
+      setSelectedReviews([]);
+    }
+  });
+  
   const updateCommentStatus = trpc.comments.updateStatus.useMutation({
     onSuccess: () => {
       toast.success("Kommentarstatus aktualisiert");
       utils.comments.listAll.invalidate();
+    }
+  });
+  
+  const bulkUpdateCommentStatus = trpc.comments.bulkUpdateStatus.useMutation({
+    onSuccess: (data) => {
+      toast.success(`${data.updatedCount} Kommentare aktualisiert`);
+      utils.comments.listAll.invalidate();
+      setSelectedComments([]);
     }
   });
   
@@ -88,6 +109,29 @@ export default function Admin() {
     if (!date) return '';
     const d = new Date(date);
     return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  };
+
+  // Selection helpers
+  const toggleCommentSelection = (id: number) => {
+    setSelectedComments(prev => 
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+  
+  const toggleReviewSelection = (id: number) => {
+    setSelectedReviews(prev => 
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+  
+  const selectAllPendingComments = () => {
+    const pendingIds = comments.filter(c => c.status === 'pending').map(c => c.id);
+    setSelectedComments(pendingIds);
+  };
+  
+  const selectAllPendingReviews = () => {
+    const pendingIds = reviews.filter(r => r.status === 'pending').map(r => r.id);
+    setSelectedReviews(pendingIds);
   };
 
   // Loading state
@@ -248,8 +292,41 @@ export default function Admin() {
           <TabsContent value="reviews" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Plattform-Bewertungen</CardTitle>
-                <CardDescription>Verwalten Sie Nutzer-Bewertungen.</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Plattform-Bewertungen</CardTitle>
+                    <CardDescription>Verwalten Sie Nutzer-Bewertungen.</CardDescription>
+                  </div>
+                  {/* Bulk Actions */}
+                  {selectedReviews.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-slate-500">{selectedReviews.length} ausgewählt</span>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        className="text-green-600 hover:bg-green-50"
+                        onClick={() => bulkUpdateReviewStatus.mutate({ ids: selectedReviews, status: 'approved' })}
+                        disabled={bulkUpdateReviewStatus.isPending}
+                      >
+                        <CheckCircle2 className="h-4 w-4 mr-1" /> Alle genehmigen
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        className="text-red-600 hover:bg-red-50"
+                        onClick={() => bulkUpdateReviewStatus.mutate({ ids: selectedReviews, status: 'rejected' })}
+                        disabled={bulkUpdateReviewStatus.isPending}
+                      >
+                        <XCircle className="h-4 w-4 mr-1" /> Alle ablehnen
+                      </Button>
+                    </div>
+                  )}
+                  {pendingReviews > 0 && selectedReviews.length === 0 && (
+                    <Button size="sm" variant="outline" onClick={selectAllPendingReviews}>
+                      <CheckSquare className="h-4 w-4 mr-1" /> Alle ausstehenden auswählen
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 {reviewsLoading ? (
@@ -261,19 +338,28 @@ export default function Admin() {
                 ) : (
                   <div className="space-y-4">
                     {reviews.map((review) => (
-                      <div key={review.id} className="flex items-start justify-between p-4 rounded-lg border border-slate-100 bg-slate-50">
+                      <div key={review.id} className="flex items-start gap-3 p-4 rounded-lg border border-slate-100 bg-slate-50">
+                        {review.status === 'pending' && (
+                          <Checkbox 
+                            checked={selectedReviews.includes(review.id)}
+                            onCheckedChange={() => toggleReviewSelection(review.id)}
+                            className="mt-1"
+                          />
+                        )}
                         <div className="space-y-1 flex-1">
                           <div className="font-medium flex items-center gap-2 flex-wrap">
                             <span>{review.authorName}</span>
+                            <div className="flex items-center text-amber-500">
+                              {[...Array(5)].map((_, i) => (
+                                <Star key={i} className={`h-3 w-3 ${i < review.rating ? 'fill-current' : ''}`} />
+                              ))}
+                            </div>
                             <Badge variant={review.status === 'approved' ? 'default' : review.status === 'rejected' ? 'destructive' : 'secondary'}>
                               {review.status}
                             </Badge>
                             <span className="text-slate-400 font-normal text-sm">• {formatDate(review.createdAt)}</span>
                           </div>
-                          <div className="text-sm text-orange-500 font-medium flex items-center gap-1">
-                            <Star className="h-3 w-3 fill-current" /> {review.rating}/5
-                          </div>
-                          {review.title && <p className="text-sm font-medium text-slate-700">{review.title}</p>}
+                          {review.title && <p className="font-medium text-slate-800">{review.title}</p>}
                           {review.content && <p className="text-sm text-slate-600">"{review.content}"</p>}
                         </div>
                         {review.status === 'pending' && (
@@ -310,8 +396,41 @@ export default function Admin() {
           <TabsContent value="comments" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Blog-Kommentare</CardTitle>
-                <CardDescription>Verwalten Sie Kommentare zu Blog-Artikeln.</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Blog-Kommentare</CardTitle>
+                    <CardDescription>Verwalten Sie Kommentare zu Blog-Artikeln.</CardDescription>
+                  </div>
+                  {/* Bulk Actions */}
+                  {selectedComments.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-slate-500">{selectedComments.length} ausgewählt</span>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        className="text-green-600 hover:bg-green-50"
+                        onClick={() => bulkUpdateCommentStatus.mutate({ ids: selectedComments, status: 'approved' })}
+                        disabled={bulkUpdateCommentStatus.isPending}
+                      >
+                        <CheckCircle2 className="h-4 w-4 mr-1" /> Alle genehmigen
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        className="text-red-600 hover:bg-red-50"
+                        onClick={() => bulkUpdateCommentStatus.mutate({ ids: selectedComments, status: 'rejected' })}
+                        disabled={bulkUpdateCommentStatus.isPending}
+                      >
+                        <XCircle className="h-4 w-4 mr-1" /> Alle ablehnen
+                      </Button>
+                    </div>
+                  )}
+                  {pendingComments > 0 && selectedComments.length === 0 && (
+                    <Button size="sm" variant="outline" onClick={selectAllPendingComments}>
+                      <CheckSquare className="h-4 w-4 mr-1" /> Alle ausstehenden auswählen
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 {commentsLoading ? (
@@ -323,7 +442,14 @@ export default function Admin() {
                 ) : (
                   <div className="space-y-4">
                     {comments.map((comment) => (
-                      <div key={comment.id} className="flex items-start justify-between p-4 rounded-lg border border-slate-100 bg-slate-50">
+                      <div key={comment.id} className="flex items-start gap-3 p-4 rounded-lg border border-slate-100 bg-slate-50">
+                        {comment.status === 'pending' && (
+                          <Checkbox 
+                            checked={selectedComments.includes(comment.id)}
+                            onCheckedChange={() => toggleCommentSelection(comment.id)}
+                            className="mt-1"
+                          />
+                        )}
                         <div className="space-y-1 flex-1">
                           <div className="font-medium flex items-center gap-2 flex-wrap">
                             <span>{comment.authorName}</span>
@@ -368,59 +494,63 @@ export default function Admin() {
           <TabsContent value="leads" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Generierte Leads</CardTitle>
-                <CardDescription>Übersicht der Anfragen.</CardDescription>
+                <CardTitle>Lead-Anfragen</CardTitle>
+                <CardDescription>Verwalten Sie eingehende Kontaktanfragen.</CardDescription>
               </CardHeader>
               <CardContent>
                 {leadsLoading ? (
-                  <Skeleton className="h-48 w-full" />
+                  <div className="space-y-4">
+                    {[1, 2].map(i => <Skeleton key={i} className="h-32 w-full" />)}
+                  </div>
                 ) : leads.length === 0 ? (
                   <p className="text-slate-500 text-center py-8">Keine Leads vorhanden.</p>
                 ) : (
-                  <div className="rounded-md border overflow-x-auto">
-                    <table className="w-full text-sm text-left">
-                      <thead className="bg-slate-50 text-slate-500 font-medium border-b">
-                        <tr>
-                          <th className="p-4">Datum</th>
-                          <th className="p-4">Plattform</th>
-                          <th className="p-4">Kontakt</th>
-                          <th className="p-4">Firma</th>
-                          <th className="p-4">Status</th>
-                          <th className="p-4">Aktionen</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y">
-                        {leads.map((lead) => (
-                          <tr key={lead.id} className="hover:bg-slate-50/50">
-                            <td className="p-4 text-slate-500">{formatDate(lead.createdAt)}</td>
-                            <td className="p-4 font-medium">{lead.platformName || '-'}</td>
-                            <td className="p-4">
-                              <div>{lead.name}</div>
-                              <div className="text-slate-500 text-xs">{lead.email}</div>
-                            </td>
-                            <td className="p-4">
-                              <div>{lead.company || '-'}</div>
-                              {lead.employeeCount && <div className="text-slate-500 text-xs">{lead.employeeCount} MA</div>}
-                            </td>
-                            <td className="p-4">
-                              <Badge variant={lead.status === 'new' ? 'default' : 'secondary'}>{lead.status}</Badge>
-                            </td>
-                            <td className="p-4">
-                              {lead.status === 'new' && (
-                                <Button 
-                                  size="sm" 
-                                  variant="outline"
-                                  onClick={() => updateLeadStatus.mutate({ id: lead.id, status: 'contacted' })}
-                                  disabled={updateLeadStatus.isPending}
-                                >
-                                  Kontaktiert
-                                </Button>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  <div className="space-y-4">
+                    {leads.map((lead) => (
+                      <div key={lead.id} className="p-4 rounded-lg border border-slate-100 bg-slate-50">
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-2 flex-1">
+                            <div className="font-medium flex items-center gap-2 flex-wrap">
+                              <span className="text-lg">{lead.name}</span>
+                              <Badge variant={lead.status === 'contacted' ? 'default' : lead.status === 'converted' ? 'secondary' : 'outline'}>
+                                {lead.status}
+                              </Badge>
+                              <span className="text-slate-400 font-normal text-sm">• {formatDate(lead.createdAt)}</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-sm">
+                              <div><span className="text-slate-500">E-Mail:</span> {lead.email}</div>
+                              {lead.company && <div><span className="text-slate-500">Firma:</span> {lead.company}</div>}
+                              {lead.phone && <div><span className="text-slate-500">Telefon:</span> {lead.phone}</div>}
+                              {lead.platformName && <div><span className="text-slate-500">Plattform:</span> {lead.platformName}</div>}
+                              {lead.interest && <div><span className="text-slate-500">Interesse:</span> {lead.interest}</div>}
+                            </div>
+                            {lead.message && <p className="text-sm text-slate-600 mt-2 p-2 bg-white rounded border">"{lead.message}"</p>}
+                          </div>
+                          {lead.status === 'new' && (
+                            <div className="flex gap-2 ml-4">
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50" 
+                                onClick={() => updateLeadStatus.mutate({ id: lead.id, status: 'contacted' })}
+                                disabled={updateLeadStatus.isPending}
+                              >
+                                Kontaktiert
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="text-green-600 hover:text-green-700 hover:bg-green-50" 
+                                onClick={() => updateLeadStatus.mutate({ id: lead.id, status: 'converted' })}
+                                disabled={updateLeadStatus.isPending}
+                              >
+                                Konvertiert
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </CardContent>
@@ -431,8 +561,8 @@ export default function Admin() {
           <TabsContent value="suggestions" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Nutzervorschläge</CardTitle>
-                <CardDescription>Feedback und neue Anbieter-Vorschläge.</CardDescription>
+                <CardTitle>Nutzer-Vorschläge</CardTitle>
+                <CardDescription>Vorschläge für neue Plattformen oder Korrekturen.</CardDescription>
               </CardHeader>
               <CardContent>
                 {suggestionsLoading ? (
@@ -444,44 +574,43 @@ export default function Admin() {
                 ) : (
                   <div className="space-y-4">
                     {suggestions.map((suggestion) => (
-                      <div key={suggestion.id} className="p-4 rounded-lg border border-slate-100 bg-slate-50">
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="font-medium">{suggestion.platformName || 'Allgemein'}</div>
-                          <div className="flex items-center gap-2">
+                      <div key={suggestion.id} className="flex items-start justify-between p-4 rounded-lg border border-slate-100 bg-slate-50">
+                        <div className="space-y-1 flex-1">
+                          <div className="font-medium flex items-center gap-2 flex-wrap">
                             <Badge variant="outline">{suggestion.type}</Badge>
+                            {suggestion.platformName && <span className="font-semibold">{suggestion.platformName}</span>}
                             <Badge variant={suggestion.status === 'implemented' ? 'default' : suggestion.status === 'rejected' ? 'destructive' : 'secondary'}>
                               {suggestion.status}
                             </Badge>
+                            <span className="text-slate-400 font-normal text-sm">• {formatDate(suggestion.createdAt)}</span>
                           </div>
-                        </div>
-                        <p className="text-sm text-slate-600 mb-2">{suggestion.description}</p>
-                        {suggestion.platformUrl && (
-                          <p className="text-sm text-blue-600 mb-2">{suggestion.platformUrl}</p>
-                        )}
-                        <div className="flex justify-between items-center">
-                          <div className="text-xs text-slate-400">{formatDate(suggestion.createdAt)}</div>
-                          {suggestion.status === 'pending' && (
-                            <div className="flex gap-2">
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => updateSuggestionStatus.mutate({ id: suggestion.id, status: 'reviewed' })}
-                                disabled={updateSuggestionStatus.isPending}
-                              >
-                                Geprüft
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                className="text-green-600"
-                                onClick={() => updateSuggestionStatus.mutate({ id: suggestion.id, status: 'implemented' })}
-                                disabled={updateSuggestionStatus.isPending}
-                              >
-                                Umgesetzt
-                              </Button>
-                            </div>
+                          <p className="text-sm text-slate-600">{suggestion.description}</p>
+                          {suggestion.submitterEmail && (
+                            <p className="text-xs text-slate-400">Von: {suggestion.submitterEmail}</p>
                           )}
                         </div>
+                        {suggestion.status === 'pending' && (
+                          <div className="flex gap-2 ml-4">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="text-green-600 hover:text-green-700 hover:bg-green-50" 
+                              onClick={() => updateSuggestionStatus.mutate({ id: suggestion.id, status: 'reviewed' })}
+                              disabled={updateSuggestionStatus.isPending}
+                            >
+                              <CheckCircle2 className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50" 
+                              onClick={() => updateSuggestionStatus.mutate({ id: suggestion.id, status: 'rejected' })}
+                              disabled={updateSuggestionStatus.isPending}
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -495,39 +624,32 @@ export default function Admin() {
             <Card>
               <CardHeader>
                 <CardTitle>Newsletter-Abonnenten</CardTitle>
-                <CardDescription>Übersicht der aktiven Abonnenten.</CardDescription>
+                <CardDescription>Übersicht aller Newsletter-Anmeldungen.</CardDescription>
               </CardHeader>
               <CardContent>
                 {subscribersLoading ? (
-                  <Skeleton className="h-48 w-full" />
+                  <div className="space-y-4">
+                    {[1, 2].map(i => <Skeleton key={i} className="h-12 w-full" />)}
+                  </div>
                 ) : subscribers.length === 0 ? (
                   <p className="text-slate-500 text-center py-8">Keine Abonnenten vorhanden.</p>
                 ) : (
-                  <div className="rounded-md border overflow-x-auto">
-                    <table className="w-full text-sm text-left">
-                      <thead className="bg-slate-50 text-slate-500 font-medium border-b">
-                        <tr>
-                          <th className="p-4">E-Mail</th>
-                          <th className="p-4">Name</th>
-                          <th className="p-4">Status</th>
-                          <th className="p-4">Angemeldet</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y">
-                        {subscribers.map((sub) => (
-                          <tr key={sub.id} className="hover:bg-slate-50/50">
-                            <td className="p-4 font-medium">{sub.email}</td>
-                            <td className="p-4">{sub.name || '-'}</td>
-                            <td className="p-4">
-                              <Badge variant={sub.isActive ? 'default' : 'secondary'}>
-                                {sub.isActive ? 'Aktiv' : 'Inaktiv'}
-                              </Badge>
-                            </td>
-                            <td className="p-4 text-slate-500">{formatDate(sub.subscribedAt)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  <div className="space-y-2">
+                    <div className="text-sm text-slate-500 mb-4">
+                      Gesamt: {subscribers.length} Abonnenten
+                    </div>
+                    {subscribers.map((subscriber) => (
+                      <div key={subscriber.id} className="flex items-center justify-between p-3 rounded-lg border border-slate-100 bg-slate-50">
+                        <div className="flex items-center gap-3">
+                          <Mail className="h-4 w-4 text-slate-400" />
+                          <div>
+                            <span className="font-medium">{subscriber.email}</span>
+                            {subscriber.name && <span className="text-slate-500 ml-2">({subscriber.name})</span>}
+                          </div>
+                        </div>
+                        <span className="text-sm text-slate-400">{formatDate(subscriber.subscribedAt)}</span>
+                      </div>
+                    ))}
                   </div>
                 )}
               </CardContent>

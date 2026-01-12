@@ -1,5 +1,6 @@
-import { useRoute, Link } from "wouter";
+import { Link, useRoute } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, Clock, User, Share2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -52,7 +53,25 @@ export default function BlogPost() {
   if (error || !post) return <NotFound />;
 
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-900 pb-20">
+    <>
+      <SEO 
+        title={post.title}
+        description={post.excerpt || post.metaDescription || undefined}
+        url={`/blog/${post.slug}`}
+        type="article"
+        article={{
+          publishedTime: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
+          modifiedTime: post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined,
+          author: post.author || undefined,
+          section: post.category || undefined
+        }}
+        breadcrumbs={[
+          { name: 'Home', url: '/' },
+          { name: 'Blog', url: '/blog' },
+          { name: post.title, url: `/blog/${post.slug}` }
+        ]}
+      />
+      <div className="min-h-screen bg-white font-sans text-slate-900 pb-20">
       {/* Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div className="container py-4 flex items-center justify-between">
@@ -115,5 +134,6 @@ export default function BlogPost() {
         </div>
       </article>
     </div>
+    </>
   );
 }
