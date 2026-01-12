@@ -1,25 +1,272 @@
+import { useState, useMemo } from "react";
+import { platforms, Platform } from "@/lib/data";
+import { PlatformCard, SectionHeading, FeatureBadge, ProsList, ConsList } from "@/components/ui-custom";
+import { Search, Filter, X, ArrowRightLeft, CheckCircle2, Info, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { Streamdown } from 'streamdown';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 
-/**
- * All content in this page are only for example, replace with your own feature implementation
- * When building pages, remember your instructions in Frontend Best Practices, Design Guide and Common Pitfalls
- */
 export default function Home() {
-  // If theme is switchable in App.tsx, we can implement theme toggling like this:
-  // const { theme, toggleTheme } = useTheme();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedPricing, setSelectedPricing] = useState<string>("all");
+  const [compareList, setCompareList] = useState<string[]>([]);
+  const [showCompareModal, setShowCompareModal] = useState(false);
+
+  const filteredPlatforms = useMemo(() => {
+    return platforms.filter((p) => {
+      const matchesSearch = 
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.features.some(f => f.toLowerCase().includes(searchQuery.toLowerCase()));
+      
+      const matchesPricing = selectedPricing === "all" || p.pricingModel === selectedPricing;
+
+      return matchesSearch && matchesPricing;
+    });
+  }, [searchQuery, selectedPricing]);
+
+  const toggleCompare = (id: string) => {
+    setCompareList(prev => {
+      if (prev.includes(id)) return prev.filter(p => p !== id);
+      if (prev.length >= 3) return prev; // Max 3 items
+      return [...prev, id];
+    });
+  };
+
+  const clearCompare = () => setCompareList([]);
+
+  const selectedPlatformsData = useMemo(() => {
+    return platforms.filter(p => compareList.includes(p.id));
+  }, [compareList]);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <main>
-        {/* Example: lucide-react for icons */}
-        <Loader2 className="animate-spin" />
-        Example Page
-        {/* Example: Streamdown for markdown rendering */}
-        <Streamdown>Any **markdown** content</Streamdown>
-        <Button variant="default">Example Button</Button>
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
+      {/* Hero Section */}
+      <header className="relative bg-[#0F172A] text-white overflow-hidden">
+        <div className="absolute inset-0 opacity-20">
+          <img 
+            src="/images/hero-background.jpg" 
+            alt="Abstract Swiss Style Background" 
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div className="container relative z-10 py-20 md:py-32">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-sm font-medium text-orange-400 mb-6 backdrop-blur-sm">
+              <Info className="mr-2 h-4 w-4" />
+              Stand: Januar 2026
+            </div>
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 leading-tight">
+              DSGVO-konforme <br/>
+              <span className="text-orange-500">LLM-Plattformen</span> im Vergleich
+            </h1>
+            <p className="text-lg md:text-xl text-slate-300 mb-10 max-w-2xl leading-relaxed">
+              Finden Sie die perfekte Alternative zu Langdock. Filtern Sie nach Preismodell, Funktionen und Compliance-Standards für Ihr Unternehmen.
+            </p>
+            
+            {/* Search & Filter Bar */}
+            <div className="bg-white/10 backdrop-blur-md p-2 rounded-2xl border border-white/10 flex flex-col md:flex-row gap-2 max-w-2xl">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                <input 
+                  type="text" 
+                  placeholder="Suchen nach Name, Firma oder Feature..." 
+                  className="w-full bg-white/90 border-0 rounded-xl py-3 pl-10 pr-4 text-slate-900 placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500 outline-none"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <Select value={selectedPricing} onValueChange={setSelectedPricing}>
+                <SelectTrigger className="w-full md:w-[200px] bg-white/90 border-0 rounded-xl h-[48px] text-slate-900">
+                  <SelectValue placeholder="Preismodell" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Alle Modelle</SelectItem>
+                  <SelectItem value="Hybrid">Hybrid</SelectItem>
+                  <SelectItem value="Nutzungsbasiert">Nutzungsbasiert</SelectItem>
+                  <SelectItem value="Pro User">Pro User</SelectItem>
+                  <SelectItem value="Einmalzahlung">Einmalzahlung</SelectItem>
+                  <SelectItem value="Enterprise">Enterprise</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="container py-12">
+        {/* Comparison Bar (Sticky) */}
+        {compareList.length > 0 && (
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-3xl px-4 animate-in slide-in-from-bottom-10 fade-in duration-300">
+            <div className="bg-[#0F172A] text-white p-4 rounded-2xl shadow-2xl border border-slate-700 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 overflow-hidden">
+                <span className="text-sm font-medium text-slate-400 whitespace-nowrap hidden sm:inline">Vergleich:</span>
+                <div className="flex -space-x-2">
+                  {selectedPlatformsData.map(p => (
+                    <div key={p.id} className="h-10 w-10 rounded-full bg-slate-800 border-2 border-[#0F172A] flex items-center justify-center text-xs font-bold text-white" title={p.name}>
+                      {p.name.substring(0, 2)}
+                    </div>
+                  ))}
+                </div>
+                <span className="text-sm font-medium ml-2">{compareList.length} / 3</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={clearCompare} className="text-slate-400 hover:text-white hover:bg-white/10">
+                  Leeren
+                </Button>
+                <Dialog open={showCompareModal} onOpenChange={setShowCompareModal}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl px-6">
+                      Jetzt vergleichen <ArrowRightLeft className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0 gap-0 overflow-hidden bg-slate-50">
+                    <DialogHeader className="p-6 bg-white border-b border-slate-200">
+                      <DialogTitle className="text-2xl font-bold text-slate-900">Plattform-Vergleich</DialogTitle>
+                      <DialogDescription>Detaillierter Vergleich der ausgewählten Anbieter.</DialogDescription>
+                    </DialogHeader>
+                    <ScrollArea className="flex-1 p-6">
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 min-w-[800px]">
+                        {/* Labels Column */}
+                        <div className="space-y-8 pt-20 hidden md:block">
+                          <div className="h-8 font-semibold text-slate-500">Firma & Standort</div>
+                          <div className="h-8 font-semibold text-slate-500">Preismodell</div>
+                          <div className="h-8 font-semibold text-slate-500">Basispreis</div>
+                          <div className="h-8 font-semibold text-slate-500">Compliance</div>
+                          <div className="h-8 font-semibold text-slate-500">Custom GPTs</div>
+                          <div className="h-32 font-semibold text-slate-500">Features</div>
+                          <div className="h-32 font-semibold text-slate-500">Vorteile</div>
+                          <div className="h-32 font-semibold text-slate-500">Nachteile</div>
+                        </div>
+
+                        {/* Platform Columns */}
+                        {selectedPlatformsData.map(p => (
+                          <div key={p.id} className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-8">
+                            <div className="h-20 border-b border-slate-100 pb-4 mb-4">
+                              <h3 className="text-xl font-bold text-slate-900">{p.name}</h3>
+                              <a href={p.url} target="_blank" className="text-sm text-orange-500 hover:underline flex items-center mt-1">
+                                Website öffnen <ExternalLink className="h-3 w-3 ml-1" />
+                              </a>
+                            </div>
+                            
+                            <div className="space-y-1">
+                              <div className="md:hidden text-xs font-semibold text-slate-400 uppercase">Firma</div>
+                              <div className="font-medium">{p.company}</div>
+                              <div className="text-sm text-slate-500">{p.location}</div>
+                            </div>
+
+                            <div className="space-y-1">
+                              <div className="md:hidden text-xs font-semibold text-slate-400 uppercase">Preismodell</div>
+                              <Badge variant="secondary" className="bg-slate-100 text-slate-800">{p.pricingModel}</Badge>
+                            </div>
+
+                            <div className="space-y-1">
+                              <div className="md:hidden text-xs font-semibold text-slate-400 uppercase">Basispreis</div>
+                              <div className="font-medium text-slate-900">{p.basePrice}</div>
+                              {p.tokenBased && <div className="text-xs text-slate-500">+ Token-Kosten</div>}
+                            </div>
+
+                            <div className="space-y-1">
+                              <div className="md:hidden text-xs font-semibold text-slate-400 uppercase">Compliance</div>
+                              <div className="flex flex-wrap gap-1">
+                                {p.compliance.map(c => (
+                                  <span key={c} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                    <CheckCircle2 className="h-3 w-3 mr-1" /> {c}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="space-y-1">
+                              <div className="md:hidden text-xs font-semibold text-slate-400 uppercase">Custom GPTs</div>
+                              <div className="font-medium flex items-center">
+                                {p.customGPTs ? <CheckCircle2 className="h-4 w-4 text-emerald-500 mr-2" /> : <X className="h-4 w-4 text-rose-500 mr-2" />}
+                                {p.customGPTDetails}
+                              </div>
+                            </div>
+
+                            <div className="h-auto md:h-32 overflow-y-auto">
+                              <div className="md:hidden text-xs font-semibold text-slate-400 uppercase mb-2">Features</div>
+                              <div className="flex flex-wrap gap-1">
+                                {p.features.map(f => (
+                                  <FeatureBadge key={f}>{f}</FeatureBadge>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="h-auto md:h-32 overflow-y-auto">
+                              <div className="md:hidden text-xs font-semibold text-slate-400 uppercase mb-2">Vorteile</div>
+                              <ProsList items={p.pros} />
+                            </div>
+
+                            <div className="h-auto md:h-32 overflow-y-auto">
+                              <div className="md:hidden text-xs font-semibold text-slate-400 uppercase mb-2">Nachteile</div>
+                              <ConsList items={p.cons} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Grid Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredPlatforms.map((platform) => (
+            <PlatformCard 
+              key={platform.id} 
+              platform={platform} 
+              onCompare={toggleCompare}
+              isSelected={compareList.includes(platform.id)}
+            />
+          ))}
+        </div>
+
+        {filteredPlatforms.length === 0 && (
+          <div className="text-center py-20">
+            <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-slate-100 mb-4">
+              <Search className="h-8 w-8 text-slate-400" />
+            </div>
+            <h3 className="text-xl font-medium text-slate-900">Keine Ergebnisse gefunden</h3>
+            <p className="text-slate-500 mt-2">Versuchen Sie es mit anderen Suchbegriffen oder Filtern.</p>
+            <Button variant="outline" className="mt-6" onClick={() => { setSearchQuery(""); setSelectedPricing("all"); }}>
+              Filter zurücksetzen
+            </Button>
+          </div>
+        )}
       </main>
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-slate-200 py-12 mt-12">
+        <div className="container text-center text-slate-500 text-sm">
+          <p className="mb-4">
+            Diese Übersicht dient nur zu Informationszwecken. Alle Angaben ohne Gewähr. <br/>
+            Preise und Funktionen können sich jederzeit ändern. Bitte prüfen Sie die aktuellen Konditionen auf den Webseiten der Anbieter.
+          </p>
+          <p>© 2026 LLM-Plattform Vergleich. Erstellt mit Manus.</p>
+        </div>
+      </footer>
     </div>
   );
 }
