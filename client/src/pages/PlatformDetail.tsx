@@ -5,6 +5,7 @@ import { ArrowLeft, ExternalLink, CheckCircle2, X, Building2, MapPin, Users, Shi
 import { Link } from "wouter";
 import { FeatureBadge, ProsList, ConsList } from "@/components/ui-custom";
 import { Reviews } from "@/components/Reviews";
+import { LeadForm } from "@/components/LeadForm";
 import { Badge } from "@/components/ui/badge";
 import NotFound from "./NotFound";
 
@@ -73,6 +74,15 @@ export default function PlatformDetail() {
 
             {/* Pricing Card (Mini) */}
             <div className="w-full md:w-80 bg-slate-50 rounded-xl border border-slate-200 p-6 shrink-0">
+              <div className="mb-6 space-y-3">
+                <LeadForm platformName={platform.name} />
+                <Button variant="outline" className="w-full border-slate-200 hover:bg-slate-100 text-slate-700" asChild>
+                  <a href={platform.url} target="_blank" rel="noopener noreferrer">
+                    Zur Website <ExternalLink className="ml-2 h-4 w-4" />
+                  </a>
+                </Button>
+              </div>
+
               <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Preismodell</h3>
               <div className="text-3xl font-bold text-slate-900 mb-1">{platform.basePrice}</div>
               <div className="text-sm text-slate-500 mb-4">
