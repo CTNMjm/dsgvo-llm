@@ -2,66 +2,62 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MessageSquare, Send, User } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { MessageSquare, Send, User, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-
-interface Comment {
-  id: number;
-  author: string;
-  date: string;
-  content: string;
-  avatar?: string;
-}
+import { trpc } from "@/lib/trpc";
 
 interface CommentsProps {
-  postId: string;
+  postId: number;
 }
 
 export function Comments({ postId }: CommentsProps) {
-  const [comments, setComments] = useState<Comment[]>([
-    {
-      id: 1,
-      author: "Michael Schmidt",
-      date: "21. Januar 2026",
-      content: "Sehr hilfreicher Artikel! Besonders der Punkt mit dem AVV wird oft vergessen. Haben Sie dazu vielleicht eine Vorlage?",
-      avatar: "MS"
+  const utils = trpc.useUtils();
+  
+  const { data: comments = [], isLoading } = trpc.comments.listByPost.useQuery(
+    { postId },
+    { enabled: !!postId }
+  );
+
+  const createComment = trpc.comments.create.useMutation({
+    onSuccess: (data) => {
+      toast.success(data.message);
+      setNewComment("");
+      setAuthorName("");
+      setAuthorEmail("");
+      utils.comments.listByPost.invalidate({ postId });
     },
-    {
-      id: 2,
-      author: "Sarah Weber",
-      date: "22. Januar 2026",
-      content: "Danke für die Zusammenfassung. Wir nutzen aktuell Langdock und sind sehr zufrieden mit den Datenschutz-Features.",
-      avatar: "SW"
+    onError: (error) => {
+      toast.error(error.message || "Fehler beim Senden des Kommentars.");
     }
-  ]);
+  });
 
   const [newComment, setNewComment] = useState("");
   const [authorName, setAuthorName] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [authorEmail, setAuthorEmail] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim() || !authorName.trim()) return;
 
-    setIsSubmitting(true);
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 800));
+    createComment.mutate({
+      postId,
+      authorName,
+      authorEmail: authorEmail || undefined,
+      content: newComment
+    });
+  };
 
-    const comment: Comment = {
-      id: Date.now(),
-      author: authorName,
-      date: new Date().toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" }),
-      content: newComment,
-      avatar: authorName.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2)
-    };
+  // Format date helper
+  const formatDate = (date: Date | string | null) => {
+    if (!date) return '';
+    const d = new Date(date);
+    return d.toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
+  };
 
-    setComments([comment, ...comments]);
-    setNewComment("");
-    setAuthorName("");
-    setIsSubmitting(false);
-    toast.success("Kommentar erfolgreich veröffentlicht!");
+  // Get initials from name
+  const getInitials = (name: string) => {
+    return name.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2);
   };
 
   return (
@@ -74,19 +70,32 @@ export function Comments({ postId }: CommentsProps) {
       {/* Comment Form */}
       <form onSubmit={handleSubmit} className="mb-10 bg-slate-50 p-6 rounded-xl border border-slate-100">
         <div className="grid gap-4">
-          <div>
-            <label htmlFor="author" className="text-sm font-medium text-slate-700 mb-1 block">Ihr Name</label>
-            <Input
-              id="author"
-              placeholder="Max Mustermann"
-              value={authorName}
-              onChange={(e) => setAuthorName(e.target.value)}
-              required
-              className="bg-white"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="author" className="text-sm font-medium text-slate-700 mb-1 block">Ihr Name *</label>
+              <Input
+                id="author"
+                placeholder="Max Mustermann"
+                value={authorName}
+                onChange={(e) => setAuthorName(e.target.value)}
+                required
+                className="bg-white"
+              />
+            </div>
+            <div>
+              <label htmlFor="email" className="text-sm font-medium text-slate-700 mb-1 block">E-Mail (optional)</label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="ihre@email.de"
+                value={authorEmail}
+                onChange={(e) => setAuthorEmail(e.target.value)}
+                className="bg-white"
+              />
+            </div>
           </div>
           <div>
-            <label htmlFor="comment" className="text-sm font-medium text-slate-700 mb-1 block">Ihre Frage oder Anmerkung</label>
+            <label htmlFor="comment" className="text-sm font-medium text-slate-700 mb-1 block">Ihre Frage oder Anmerkung *</label>
             <Textarea
               id="comment"
               placeholder="Schreiben Sie einen Kommentar..."
@@ -96,9 +105,16 @@ export function Comments({ postId }: CommentsProps) {
               className="bg-white min-h-[100px]"
             />
           </div>
+          <p className="text-xs text-slate-500">
+            Kommentare werden vor der Veröffentlichung geprüft.
+          </p>
           <div className="flex justify-end">
-            <Button type="submit" disabled={isSubmitting} className="bg-slate-900 hover:bg-slate-800 text-white">
-              {isSubmitting ? "Wird gesendet..." : (
+            <Button type="submit" disabled={createComment.isPending} className="bg-slate-900 hover:bg-slate-800 text-white">
+              {createComment.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Wird gesendet...
+                </>
+              ) : (
                 <>
                   Kommentar senden <Send className="ml-2 h-4 w-4" />
                 </>
@@ -109,26 +125,37 @@ export function Comments({ postId }: CommentsProps) {
       </form>
 
       {/* Comments List */}
-      <div className="space-y-6">
-        {comments.map((comment) => (
-          <div key={comment.id} className="flex gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <Avatar className="h-10 w-10 border border-slate-200 bg-white">
-              <AvatarFallback className="bg-orange-50 text-orange-600 font-medium text-sm">
-                {comment.avatar || <User className="h-5 w-5" />}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <div className="flex items-center justify-between mb-1">
-                <h4 className="font-semibold text-slate-900">{comment.author}</h4>
-                <span className="text-xs text-slate-500">{comment.date}</span>
+      {isLoading ? (
+        <div className="text-center py-8 text-slate-500">
+          <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+          Kommentare werden geladen...
+        </div>
+      ) : comments.length === 0 ? (
+        <div className="text-center py-8 text-slate-500">
+          Noch keine Kommentare. Seien Sie der Erste!
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {comments.map((comment) => (
+            <div key={comment.id} className="flex gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <Avatar className="h-10 w-10 border border-slate-200 bg-white">
+                <AvatarFallback className="bg-orange-50 text-orange-600 font-medium text-sm">
+                  {getInitials(comment.authorName)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-1">
+                  <h4 className="font-semibold text-slate-900">{comment.authorName}</h4>
+                  <span className="text-xs text-slate-500">{formatDate(comment.createdAt)}</span>
+                </div>
+                <p className="text-slate-600 text-sm leading-relaxed bg-slate-50 p-3 rounded-lg rounded-tl-none border border-slate-100">
+                  {comment.content}
+                </p>
               </div>
-              <p className="text-slate-600 text-sm leading-relaxed bg-slate-50 p-3 rounded-lg rounded-tl-none border border-slate-100">
-                {comment.content}
-              </p>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

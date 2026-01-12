@@ -3,24 +3,27 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mail, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 
 export function Newsletter() {
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
+
+  const subscribeMutation = trpc.newsletter.subscribe.useMutation({
+    onSuccess: (data) => {
+      setSubscribed(true);
+      toast.success(data.message);
+      setEmail("");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Fehler bei der Anmeldung. Bitte versuchen Sie es erneut.");
+    }
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
-
-    setLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setLoading(false);
-    setSubscribed(true);
-    toast.success("Erfolgreich zum Newsletter angemeldet!");
-    setEmail("");
+    subscribeMutation.mutate({ email });
   };
 
   return (
@@ -63,10 +66,10 @@ export function Newsletter() {
               </div>
               <Button 
                 type="submit" 
-                disabled={loading}
+                disabled={subscribeMutation.isPending}
                 className="h-12 bg-orange-500 hover:bg-orange-600 text-white font-semibold text-base w-full"
               >
-                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Jetzt anmelden"}
+                {subscribeMutation.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : "Jetzt anmelden"}
               </Button>
               <p className="text-xs text-slate-500 text-center mt-2">
                 Abmeldung jederzeit möglich. Wir hassen Spam genauso wie Sie.

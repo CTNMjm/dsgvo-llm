@@ -1,20 +1,55 @@
 import { useRoute, Link } from "wouter";
-import { blogPosts } from "@/lib/blog-data";
+import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, Clock, User, Share2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import NotFound from "./NotFound";
 import { Streamdown } from "streamdown";
 import { Comments } from "@/components/Comments";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function BlogPost() {
-  const [match, params] = useRoute("/blog/:id");
+  const [match, params] = useRoute("/blog/:slug");
   
   if (!match) return <NotFound />;
 
-  const post = blogPosts.find(p => p.id === params.id);
+  const { data: post, isLoading, error } = trpc.blog.getBySlug.useQuery(
+    { slug: params.slug },
+    { enabled: !!params.slug }
+  );
 
-  if (!post) return <NotFound />;
+  // Format date helper
+  const formatDate = (date: Date | string | null) => {
+    if (!date) return '';
+    const d = new Date(date);
+    return d.toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white font-sans text-slate-900 pb-20">
+        <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
+          <div className="container py-4">
+            <Skeleton className="h-10 w-40" />
+          </div>
+        </header>
+        <article className="container py-12 max-w-3xl">
+          <div className="text-center mb-8">
+            <Skeleton className="h-6 w-24 mx-auto mb-4" />
+            <Skeleton className="h-12 w-full mb-6" />
+            <Skeleton className="h-4 w-64 mx-auto" />
+          </div>
+          <div className="space-y-4">
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-6 w-3/4" />
+          </div>
+        </article>
+      </div>
+    );
+  }
+
+  if (error || !post) return <NotFound />;
 
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900 pb-20">
@@ -35,7 +70,7 @@ export default function BlogPost() {
       <article className="container py-12 max-w-3xl">
         <div className="mb-8 text-center">
           <Badge className="mb-4 bg-orange-100 text-orange-700 hover:bg-orange-200 border-none px-3 py-1 text-sm">
-            {post.category}
+            {post.category || 'Artikel'}
           </Badge>
           <h1 className="text-3xl md:text-5xl font-bold text-slate-900 mb-6 leading-tight">
             {post.title}
@@ -46,10 +81,10 @@ export default function BlogPost() {
               <User className="h-4 w-4 mr-2 text-slate-400" /> {post.author}
             </span>
             <span className="flex items-center">
-              <Calendar className="h-4 w-4 mr-2" /> {post.date}
+              <Calendar className="h-4 w-4 mr-2" /> {formatDate(post.publishedAt)}
             </span>
             <span className="flex items-center">
-              <Clock className="h-4 w-4 mr-2" /> {post.readTime} Lesezeit
+              <Clock className="h-4 w-4 mr-2" /> {post.readTime || '5 Min.'} Lesezeit
             </span>
           </div>
         </div>

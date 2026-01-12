@@ -15,32 +15,66 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CheckCircle2, Loader2, Send, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 
 interface LeadFormProps {
   platformName: string;
+  platformId?: number;
 }
 
-export function LeadForm({ platformName }: LeadFormProps) {
+export function LeadForm({ platformName, platformId }: LeadFormProps) {
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    company: '',
+    email: '',
+    employeeCount: '',
+    interest: '' as 'demo' | 'quote' | 'trial' | 'info' | '',
+    message: ''
+  });
+
+  const createLead = trpc.leads.create.useMutation({
+    onSuccess: (data) => {
+      setSuccess(true);
+      toast.success(data.message);
+      
+      // Reset after delay
+      setTimeout(() => {
+        setOpen(false);
+        setTimeout(() => {
+          setSuccess(false);
+          setFormData({
+            firstName: '',
+            lastName: '',
+            company: '',
+            email: '',
+            employeeCount: '',
+            interest: '',
+            message: ''
+          });
+        }, 300);
+      }, 3000);
+    },
+    onError: (error) => {
+      toast.error(error.message || "Fehler beim Senden. Bitte versuchen Sie es erneut.");
+    }
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setLoading(false);
-    setSuccess(true);
-    toast.success("Anfrage erfolgreich gesendet!");
-    
-    // Reset after delay
-    setTimeout(() => {
-      setOpen(false);
-      setTimeout(() => setSuccess(false), 300);
-    }, 3000);
+    createLead.mutate({
+      platformId,
+      platformName,
+      name: `${formData.firstName} ${formData.lastName}`,
+      email: formData.email,
+      company: formData.company,
+      employeeCount: formData.employeeCount,
+      interest: formData.interest || 'info',
+      message: formData.message || undefined
+    });
   };
 
   return (
@@ -80,28 +114,55 @@ export function LeadForm({ platformName }: LeadFormProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">Vorname</Label>
-                  <Input id="firstName" required placeholder="Max" />
+                  <Input 
+                    id="firstName" 
+                    required 
+                    placeholder="Max" 
+                    value={formData.firstName}
+                    onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastName">Nachname</Label>
-                  <Input id="lastName" required placeholder="Mustermann" />
+                  <Input 
+                    id="lastName" 
+                    required 
+                    placeholder="Mustermann" 
+                    value={formData.lastName}
+                    onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                  />
                 </div>
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="company">Firma</Label>
-                <Input id="company" required placeholder="Musterfirma GmbH" />
+                <Input 
+                  id="company" 
+                  placeholder="Musterfirma GmbH" 
+                  value={formData.company}
+                  onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="email">Geschäftliche E-Mail</Label>
-                <Input id="email" type="email" required placeholder="name@firma.de" />
+                <Input 
+                  id="email" 
+                  type="email" 
+                  required 
+                  placeholder="name@firma.de" 
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="employees">Mitarbeiterzahl</Label>
-                  <Select>
+                  <Select 
+                    value={formData.employeeCount} 
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, employeeCount: value }))}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Bitte wählen" />
                     </SelectTrigger>
@@ -115,7 +176,10 @@ export function LeadForm({ platformName }: LeadFormProps) {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="interest">Interesse an</Label>
-                  <Select>
+                  <Select 
+                    value={formData.interest} 
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, interest: value as any }))}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Bitte wählen" />
                     </SelectTrigger>
@@ -123,6 +187,7 @@ export function LeadForm({ platformName }: LeadFormProps) {
                       <SelectItem value="demo">Live Demo</SelectItem>
                       <SelectItem value="quote">Angebot</SelectItem>
                       <SelectItem value="trial">Testzugang</SelectItem>
+                      <SelectItem value="info">Informationen</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -134,6 +199,8 @@ export function LeadForm({ platformName }: LeadFormProps) {
                   id="message" 
                   placeholder="Haben Sie spezifische Anforderungen?" 
                   className="min-h-[80px]"
+                  value={formData.message}
+                  onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
                 />
               </div>
               
@@ -146,8 +213,8 @@ export function LeadForm({ platformName }: LeadFormProps) {
             </div>
 
             <DialogFooter>
-              <Button type="submit" disabled={loading} className="w-full bg-slate-900 hover:bg-slate-800 text-white">
-                {loading ? (
+              <Button type="submit" disabled={createLead.isPending} className="w-full bg-slate-900 hover:bg-slate-800 text-white">
+                {createLead.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Wird gesendet...

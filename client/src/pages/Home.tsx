@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
-import { platforms, Platform } from "@/lib/data";
-import { PlatformCard, SectionHeading, FeatureBadge, ProsList, ConsList } from "@/components/ui-custom";
-import { Search, Filter, X, ArrowRightLeft, CheckCircle2, Info, ExternalLink, Download, Loader2 } from "lucide-react";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
+import { PlatformCard, FeatureBadge, ProsList, ConsList } from "@/components/ui-custom";
+import { Search, X, ArrowRightLeft, CheckCircle2, Info, ExternalLink, Download, Loader2 } from "lucide-react";
 import { exportComparisonToPDF } from "@/lib/pdf-export";
 import { toast } from "sonner";
 import { CostCalculator } from "@/components/CostCalculator";
@@ -26,12 +27,41 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Platform type from API
+interface Platform {
+  id: number;
+  slug: string;
+  name: string;
+  company: string;
+  location: string | null;
+  url: string | null;
+  pricingModel: string;
+  basePrice: string | null;
+  tokenBased: boolean | null;
+  compliance: string[] | null;
+  customGPTs: boolean | null;
+  customGPTDetails: string | null;
+  features: string[] | null;
+  pros: string[] | null;
+  cons: string[] | null;
+  description: string | null;
+  screenshotUrl: string | null;
+  employees: string | null;
+  customers: string | null;
+  isActive: boolean | null;
+}
 
 export default function Home() {
+  const { user, isAuthenticated } = useAuth();
+  
+  // Fetch platforms from API
+  const { data: platforms = [], isLoading } = trpc.platforms.list.useQuery();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPricing, setSelectedPricing] = useState<string>("all");
-  const [compareList, setCompareList] = useState<string[]>([]);
+  const [compareList, setCompareList] = useState<number[]>([]);
   const [showCompareModal, setShowCompareModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -53,18 +83,18 @@ export default function Home() {
       const matchesSearch = 
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.features.some(f => f.toLowerCase().includes(searchQuery.toLowerCase()));
+        (p.features || []).some(f => f.toLowerCase().includes(searchQuery.toLowerCase()));
       
       const matchesPricing = selectedPricing === "all" || p.pricingModel === selectedPricing;
 
       return matchesSearch && matchesPricing;
     });
-  }, [searchQuery, selectedPricing]);
+  }, [platforms, searchQuery, selectedPricing]);
 
-  const toggleCompare = (id: string) => {
+  const toggleCompare = (id: number) => {
     setCompareList(prev => {
       if (prev.includes(id)) return prev.filter(p => p !== id);
-      if (prev.length >= 3) return prev; // Max 3 items
+      if (prev.length >= 3) return prev;
       return [...prev, id];
     });
   };
@@ -73,7 +103,29 @@ export default function Home() {
 
   const selectedPlatformsData = useMemo(() => {
     return platforms.filter(p => compareList.includes(p.id));
-  }, [compareList]);
+  }, [platforms, compareList]);
+
+  // Loading skeleton
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
+        <header className="relative bg-[#0F172A] text-white overflow-hidden">
+          <div className="container py-20 md:py-32">
+            <Skeleton className="h-12 w-3/4 bg-slate-700 mb-6" />
+            <Skeleton className="h-6 w-1/2 bg-slate-700 mb-4" />
+            <Skeleton className="h-12 w-full max-w-2xl bg-slate-700" />
+          </div>
+        </header>
+        <main className="container py-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <Skeleton key={i} className="h-64 rounded-xl" />
+            ))}
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
@@ -197,7 +249,7 @@ export default function Home() {
                           <div key={p.id} className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-8">
                             <div className="h-20 border-b border-slate-100 pb-4 mb-4">
                               <h3 className="text-xl font-bold text-slate-900">{p.name}</h3>
-                              <a href={p.url} target="_blank" className="text-sm text-orange-500 hover:underline flex items-center mt-1">
+                              <a href={p.url || '#'} target="_blank" className="text-sm text-orange-500 hover:underline flex items-center mt-1">
                                 Website öffnen <ExternalLink className="h-3 w-3 ml-1" />
                               </a>
                             </div>
@@ -222,7 +274,7 @@ export default function Home() {
                             <div className="space-y-1">
                               <div className="md:hidden text-xs font-semibold text-slate-400 uppercase">Compliance</div>
                               <div className="flex flex-wrap gap-1">
-                                {p.compliance.map(c => (
+                                {(p.compliance || []).map(c => (
                                   <span key={c} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100">
                                     <CheckCircle2 className="h-3 w-3 mr-1" /> {c}
                                   </span>
@@ -241,7 +293,7 @@ export default function Home() {
                             <div className="h-auto md:h-32 overflow-y-auto">
                               <div className="md:hidden text-xs font-semibold text-slate-400 uppercase mb-2">Features</div>
                               <div className="flex flex-wrap gap-1">
-                                {p.features.map(f => (
+                                {(p.features || []).map(f => (
                                   <FeatureBadge key={f}>{f}</FeatureBadge>
                                 ))}
                               </div>
@@ -249,12 +301,12 @@ export default function Home() {
 
                             <div className="h-auto md:h-32 overflow-y-auto">
                               <div className="md:hidden text-xs font-semibold text-slate-400 uppercase mb-2">Vorteile</div>
-                              <ProsList items={p.pros} />
+                              <ProsList items={p.pros || []} />
                             </div>
 
                             <div className="h-auto md:h-32 overflow-y-auto">
                               <div className="md:hidden text-xs font-semibold text-slate-400 uppercase mb-2">Nachteile</div>
-                              <ConsList items={p.cons} />
+                              <ConsList items={p.cons || []} />
                             </div>
                           </div>
                         ))}
@@ -287,38 +339,57 @@ export default function Home() {
           <div className="flex-1">
             {/* Platform Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
-          {filteredPlatforms.map((platform) => (
-            <PlatformCard 
-              key={platform.id} 
-              platform={platform} 
-              onCompare={() => toggleCompare(platform.id)}
-              isSelected={compareList.includes(platform.id)}
-            />
-          ))}
-        </div>
-
-        {filteredPlatforms.length === 0 && (
-          <div className="text-center py-20 mb-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
-              <Search className="h-8 w-8 text-slate-400" />
+              {filteredPlatforms.map((platform) => (
+                <PlatformCard 
+                  key={platform.id} 
+                  platform={{
+                    id: platform.slug,
+                    name: platform.name,
+                    company: platform.company,
+                    location: platform.location || '',
+                    pricingModel: platform.pricingModel as any,
+                    basePrice: platform.basePrice || '',
+                    tokenBased: platform.tokenBased || false,
+                    compliance: platform.compliance || [],
+                    customGPTs: platform.customGPTs || false,
+                    customGPTDetails: platform.customGPTDetails || '',
+                    features: platform.features || [],
+                    pros: platform.pros || [],
+                    cons: platform.cons || [],
+                    url: platform.url || '',
+                    description: platform.description || '',
+                    screenshots: [],
+                    employees: platform.employees || '',
+                    customers: platform.customers || ''
+                  }} 
+                  onCompare={() => toggleCompare(platform.id)}
+                  isSelected={compareList.includes(platform.id)}
+                />
+              ))}
             </div>
-            <h3 className="text-xl font-semibold text-slate-900 mb-2">Keine Ergebnisse gefunden</h3>
-            <p className="text-slate-500 max-w-md mx-auto">
-              Versuchen Sie es mit anderen Suchbegriffen oder ändern Sie die Filtereinstellungen.
-            </p>
-            <Button 
-              variant="outline" 
-              className="mt-6"
-              onClick={() => { setSearchQuery(""); setSelectedPricing("all"); }}
-            >
-              Filter zurücksetzen
-            </Button>
-          </div>
-        )}
 
-        {/* Newsletter Section */}
-        <Newsletter />
-        </div>
+            {filteredPlatforms.length === 0 && (
+              <div className="text-center py-20 mb-12">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
+                  <Search className="h-8 w-8 text-slate-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-slate-900 mb-2">Keine Ergebnisse gefunden</h3>
+                <p className="text-slate-500 max-w-md mx-auto">
+                  Versuchen Sie es mit anderen Suchbegriffen oder ändern Sie die Filtereinstellungen.
+                </p>
+                <Button 
+                  variant="outline" 
+                  className="mt-6"
+                  onClick={() => { setSearchQuery(""); setSelectedPricing("all"); }}
+                >
+                  Filter zurücksetzen
+                </Button>
+              </div>
+            )}
+
+            {/* Newsletter Section */}
+            <Newsletter />
+          </div>
         </div>
       </main>
 

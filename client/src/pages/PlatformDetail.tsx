@@ -1,22 +1,55 @@
 import { useRoute } from "wouter";
-import { platforms } from "@/lib/data";
+import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ExternalLink, CheckCircle2, X, Building2, MapPin, Users, Shield, Coins, Layers } from "lucide-react";
+import { ArrowLeft, ExternalLink, CheckCircle2, X, Building2, MapPin, Users, Shield, Coins, Layers, Loader2 } from "lucide-react";
 import { Link } from "wouter";
-import { FeatureBadge, ProsList, ConsList } from "@/components/ui-custom";
+import { ProsList, ConsList } from "@/components/ui-custom";
 import { Reviews } from "@/components/Reviews";
 import { LeadForm } from "@/components/LeadForm";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import NotFound from "./NotFound";
 
 export default function PlatformDetail() {
-  const [match, params] = useRoute("/platform/:id");
+  const [match, params] = useRoute("/platform/:slug");
   
   if (!match) return <NotFound />;
 
-  const platform = platforms.find(p => p.id === params.id);
+  const { data: platform, isLoading, error } = trpc.platforms.getBySlug.useQuery(
+    { slug: params.slug },
+    { enabled: !!params.slug }
+  );
 
-  if (!platform) return <NotFound />;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20">
+        <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
+          <div className="container py-4">
+            <Skeleton className="h-10 w-40" />
+          </div>
+        </header>
+        <main className="container py-8 max-w-5xl">
+          <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm mb-8">
+            <div className="flex flex-col md:flex-row gap-8">
+              <div className="flex-1">
+                <Skeleton className="h-16 w-16 rounded-2xl mb-4" />
+                <Skeleton className="h-10 w-64 mb-4" />
+                <Skeleton className="h-24 w-full" />
+              </div>
+              <Skeleton className="w-full md:w-80 h-64 rounded-xl" />
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error || !platform) return <NotFound />;
+
+  const features = platform.features || [];
+  const pros = platform.pros || [];
+  const cons = platform.cons || [];
+  const compliance = platform.compliance || [];
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20">
@@ -30,7 +63,7 @@ export default function PlatformDetail() {
           </Link>
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-bold text-slate-900 hidden sm:block">{platform.name}</h1>
-            <a href={platform.url} target="_blank" rel="noopener noreferrer">
+            <a href={platform.url || '#'} target="_blank" rel="noopener noreferrer">
               <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white">
                 Website besuchen <ExternalLink className="ml-2 h-4 w-4" />
               </Button>
@@ -67,7 +100,7 @@ export default function PlatformDetail() {
                   <Users className="h-3 w-3 mr-2" /> {platform.customers}
                 </Badge>
                 <Badge variant="secondary" className="bg-slate-100 text-slate-700 px-3 py-1 text-sm">
-                  <Shield className="h-3 w-3 mr-2" /> {platform.compliance.join(", ")}
+                  <Shield className="h-3 w-3 mr-2" /> {compliance.join(", ")}
                 </Badge>
               </div>
             </div>
@@ -75,9 +108,9 @@ export default function PlatformDetail() {
             {/* Pricing Card (Mini) */}
             <div className="w-full md:w-80 bg-slate-50 rounded-xl border border-slate-200 p-6 shrink-0">
               <div className="mb-6 space-y-3">
-                <LeadForm platformName={platform.name} />
+                <LeadForm platformName={platform.name} platformId={platform.id} />
                 <Button variant="outline" className="w-full border-slate-200 hover:bg-slate-100 text-slate-700" asChild>
-                  <a href={platform.url} target="_blank" rel="noopener noreferrer">
+                  <a href={platform.url || '#'} target="_blank" rel="noopener noreferrer">
                     Zur Website <ExternalLink className="ml-2 h-4 w-4" />
                   </a>
                 </Button>
@@ -108,21 +141,19 @@ export default function PlatformDetail() {
         </div>
 
         {/* Screenshots Section */}
-        {platform.screenshots && platform.screenshots.length > 0 && (
+        {platform.screenshotUrl && (
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center">
               <Layers className="h-6 w-6 mr-2 text-orange-500" /> Einblick in die Plattform
             </h2>
             <div className="grid grid-cols-1 gap-6">
-              {platform.screenshots.map((src, index) => (
-                <div key={index} className="rounded-xl overflow-hidden border border-slate-200 shadow-md bg-slate-100 group">
-                  <img 
-                    src={src} 
-                    alt={`${platform.name} Screenshot ${index + 1}`} 
-                    className="w-full h-auto transition-transform duration-500 group-hover:scale-[1.01]"
-                  />
-                </div>
-              ))}
+              <div className="rounded-xl overflow-hidden border border-slate-200 shadow-md bg-slate-100 group">
+                <img 
+                  src={platform.screenshotUrl} 
+                  alt={`${platform.name} Screenshot`} 
+                  className="w-full h-auto transition-transform duration-500 group-hover:scale-[1.01]"
+                />
+              </div>
             </div>
           </div>
         )}
@@ -135,7 +166,7 @@ export default function PlatformDetail() {
               <Coins className="h-5 w-5 mr-2 text-orange-500" /> Funktionen & Features
             </h2>
             <div className="flex flex-wrap gap-2">
-              {platform.features.map(f => (
+              {features.map(f => (
                 <span key={f} className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-slate-50 text-slate-700 border border-slate-100">
                   {f}
                 </span>
@@ -151,19 +182,19 @@ export default function PlatformDetail() {
             
             <div className="mb-6">
               <h3 className="text-sm font-semibold text-emerald-600 uppercase tracking-wider mb-3">Stärken</h3>
-              <ProsList items={platform.pros} />
+              <ProsList items={pros} />
             </div>
             
             <div>
               <h3 className="text-sm font-semibold text-rose-600 uppercase tracking-wider mb-3">Schwächen</h3>
-              <ConsList items={platform.cons} />
+              <ConsList items={cons} />
             </div>
           </div>
         </div>
 
         {/* Reviews Section */}
         <div className="mt-12">
-          <Reviews platformId={platform.id} />
+          <Reviews platformId={platform.id} platformName={platform.name} />
         </div>
 
       </main>

@@ -1,0 +1,37 @@
+{
+  "query": "SHOW TABLES;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3n6qTNezUaiqXwT.dab73406a049 --database 83VRahLS37UxtzQV8DA4uM --execute SHOW TABLES;",
+  "rows": [
+    {
+      "Tables_in_83VRahLS37UxtzQV8DA4uM": "__drizzle_migrations"
+    },
+    {
+      "Tables_in_83VRahLS37UxtzQV8DA4uM": "blog_comments"
+    },
+    {
+      "Tables_in_83VRahLS37UxtzQV8DA4uM": "blog_posts"
+    },
+    {
+      "Tables_in_83VRahLS37UxtzQV8DA4uM": "leads"
+    },
+    {
+      "Tables_in_83VRahLS37UxtzQV8DA4uM": "newsletter_subscribers"
+    },
+    {
+      "Tables_in_83VRahLS37UxtzQV8DA4uM": "platform_reviews"
+    },
+    {
+      "Tables_in_83VRahLS37UxtzQV8DA4uM": "platform_suggestions"
+    },
+    {
+      "Tables_in_83VRahLS37UxtzQV8DA4uM": "platforms"
+    },
+    {
+      "Tables_in_83VRahLS37UxtzQV8DA4uM": "users"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_83VRahLS37UxtzQV8DA4uM\n__drizzle_migrations\nblog_comments\nblog_posts\nleads\nnewsletter_subscribers\nplatform_reviews\nplatform_suggestions\nplatforms\nusers\n",
+  "stderr": "",
+  "execution_time_ms": 156
+}
