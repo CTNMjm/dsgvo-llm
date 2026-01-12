@@ -6,6 +6,7 @@ import { exportComparisonToPDF } from "@/lib/pdf-export";
 import { toast } from "sonner";
 import { CostCalculator } from "@/components/CostCalculator";
 import { FeedbackForm } from "@/components/FeedbackForm";
+import { Newsletter } from "@/components/Newsletter";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -132,7 +133,7 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <main className="container py-12">
+      <main className="container py-12 pb-24">
         {/* Comparison Bar (Sticky) */}
         {compareList.length > 0 && (
           <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-3xl px-4 animate-in slide-in-from-bottom-10 fade-in duration-300">
@@ -283,33 +284,41 @@ export default function Home() {
 
           {/* Main Grid */}
           <div className="flex-1">
-            {/* Mobile Calculator Toggle could go here if needed, but for now we just show grid */}
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {filteredPlatforms.map((platform) => (
-                <PlatformCard 
-                  key={platform.id} 
-                  platform={platform} 
-                  onCompare={toggleCompare}
-                  isSelected={compareList.includes(platform.id)}
-                />
-              ))}
-            </div>
-          </div>
+            {/* Platform Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
+          {filteredPlatforms.map((platform) => (
+            <PlatformCard 
+              key={platform.id} 
+              platform={platform} 
+              onCompare={() => toggleCompare(platform.id)}
+              isSelected={compareList.includes(platform.id)}
+            />
+          ))}
         </div>
 
         {filteredPlatforms.length === 0 && (
-          <div className="text-center py-20">
-            <div className="inline-flex items-center justify-center h-16 w-16 rounded-full bg-slate-100 mb-4">
+          <div className="text-center py-20 mb-12">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
               <Search className="h-8 w-8 text-slate-400" />
             </div>
-            <h3 className="text-xl font-medium text-slate-900">Keine Ergebnisse gefunden</h3>
-            <p className="text-slate-500 mt-2">Versuchen Sie es mit anderen Suchbegriffen oder Filtern.</p>
-            <Button variant="outline" className="mt-6" onClick={() => { setSearchQuery(""); setSelectedPricing("all"); }}>
+            <h3 className="text-xl font-semibold text-slate-900 mb-2">Keine Ergebnisse gefunden</h3>
+            <p className="text-slate-500 max-w-md mx-auto">
+              Versuchen Sie es mit anderen Suchbegriffen oder ändern Sie die Filtereinstellungen.
+            </p>
+            <Button 
+              variant="outline" 
+              className="mt-6"
+              onClick={() => { setSearchQuery(""); setSelectedPricing("all"); }}
+            >
               Filter zurücksetzen
             </Button>
           </div>
         )}
+
+        {/* Newsletter Section */}
+        <Newsletter />
+        </div>
+        </div>
       </main>
 
       {/* Footer */}
