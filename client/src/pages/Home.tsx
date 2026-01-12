@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { platforms, Platform } from "@/lib/data";
 import { PlatformCard, SectionHeading, FeatureBadge, ProsList, ConsList } from "@/components/ui-custom";
 import { Search, Filter, X, ArrowRightLeft, CheckCircle2, Info, ExternalLink } from "lucide-react";
+import { CostCalculator } from "@/components/CostCalculator";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -81,7 +82,7 @@ export default function Home() {
             </p>
             
             {/* Search & Filter Bar */}
-            <div className="bg-white/10 backdrop-blur-md p-2 rounded-2xl border border-white/10 flex flex-col md:flex-row gap-2 max-w-2xl">
+            <div className="bg-white/10 backdrop-blur-md p-2 rounded-2xl border border-white/10 flex flex-col md:flex-row gap-2 max-w-2xl mb-12">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                 <input 
@@ -231,16 +232,37 @@ export default function Home() {
           </div>
         )}
 
-        {/* Grid Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPlatforms.map((platform) => (
-            <PlatformCard 
-              key={platform.id} 
-              platform={platform} 
-              onCompare={toggleCompare}
-              isSelected={compareList.includes(platform.id)}
-            />
-          ))}
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Sidebar with Calculator (Desktop) */}
+          <aside className="hidden lg:block w-80 shrink-0 space-y-6">
+            <CostCalculator />
+            
+            <div className="bg-blue-50 rounded-xl p-6 border border-blue-100">
+              <h3 className="font-bold text-blue-900 mb-2">Warum vergleichen?</h3>
+              <p className="text-sm text-blue-700 mb-4">
+                Die Preismodelle unterscheiden sich stark. Während einige Anbieter pauschal pro User abrechnen, setzen andere auf Token-Verbrauch oder Hybrid-Modelle.
+              </p>
+              <p className="text-sm text-blue-700">
+                Unser Rechner hilft Ihnen, die versteckten Kosten bei hoher Nutzung aufzudecken.
+              </p>
+            </div>
+          </aside>
+
+          {/* Main Grid */}
+          <div className="flex-1">
+            {/* Mobile Calculator Toggle could go here if needed, but for now we just show grid */}
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {filteredPlatforms.map((platform) => (
+                <PlatformCard 
+                  key={platform.id} 
+                  platform={platform} 
+                  onCompare={toggleCompare}
+                  isSelected={compareList.includes(platform.id)}
+                />
+              ))}
+            </div>
+          </div>
         </div>
 
         {filteredPlatforms.length === 0 && (
