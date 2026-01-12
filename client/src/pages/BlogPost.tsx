@@ -5,6 +5,7 @@ import { ArrowLeft, Calendar, Clock, User, Share2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import NotFound from "./NotFound";
 import { Streamdown } from "streamdown";
+import { Comments } from "@/components/Comments";
 
 export default function BlogPost() {
   const [match, params] = useRoute("/blog/:id");
@@ -61,6 +62,8 @@ export default function BlogPost() {
             {post.content}
           </Streamdown>
         </div>
+
+        <Comments postId={post.id} />
 
         <div className="mt-16 pt-8 border-t border-slate-200">
           <div className="bg-slate-50 rounded-2xl p-8 text-center">
