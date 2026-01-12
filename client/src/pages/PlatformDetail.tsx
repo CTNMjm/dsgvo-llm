@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, ExternalLink, CheckCircle2, X, Building2, MapPin, Users, Shield, Coins, Layers } from "lucide-react";
 import { Link } from "wouter";
 import { FeatureBadge, ProsList, ConsList } from "@/components/ui-custom";
+import { Reviews } from "@/components/Reviews";
 import { Badge } from "@/components/ui/badge";
 import NotFound from "./NotFound";
 
@@ -148,6 +149,11 @@ export default function PlatformDetail() {
               <ConsList items={platform.cons} />
             </div>
           </div>
+        </div>
+
+        {/* Reviews Section */}
+        <div className="mt-12">
+          <Reviews platformId={platform.id} />
         </div>
 
       </main>

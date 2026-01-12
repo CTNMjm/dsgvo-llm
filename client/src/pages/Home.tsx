@@ -1,7 +1,9 @@
 import { useState, useMemo } from "react";
 import { platforms, Platform } from "@/lib/data";
 import { PlatformCard, SectionHeading, FeatureBadge, ProsList, ConsList } from "@/components/ui-custom";
-import { Search, Filter, X, ArrowRightLeft, CheckCircle2, Info, ExternalLink } from "lucide-react";
+import { Search, Filter, X, ArrowRightLeft, CheckCircle2, Info, ExternalLink, Download, Loader2 } from "lucide-react";
+import { exportComparisonToPDF } from "@/lib/pdf-export";
+import { toast } from "sonner";
 import { CostCalculator } from "@/components/CostCalculator";
 import { FeedbackForm } from "@/components/FeedbackForm";
 import { Button } from "@/components/ui/button";
@@ -29,6 +31,20 @@ export default function Home() {
   const [selectedPricing, setSelectedPricing] = useState<string>("all");
   const [compareList, setCompareList] = useState<string[]>([]);
   const [showCompareModal, setShowCompareModal] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportPDF = async () => {
+    setIsExporting(true);
+    try {
+      await exportComparisonToPDF("comparison-content", "LLM-Plattform-Vergleich");
+      toast.success("PDF erfolgreich heruntergeladen!");
+    } catch (error) {
+      toast.error("Fehler beim Erstellen des PDFs.");
+      console.error(error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const filteredPlatforms = useMemo(() => {
     return platforms.filter((p) => {
@@ -144,11 +160,24 @@ export default function Home() {
                   </DialogTrigger>
                   <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0 gap-0 overflow-hidden bg-slate-50">
                     <DialogHeader className="p-6 bg-white border-b border-slate-200">
-                      <DialogTitle className="text-2xl font-bold text-slate-900">Plattform-Vergleich</DialogTitle>
-                      <DialogDescription>Detaillierter Vergleich der ausgewählten Anbieter.</DialogDescription>
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <DialogTitle className="text-2xl font-bold text-slate-900">Plattform-Vergleich</DialogTitle>
+                          <DialogDescription>Detaillierter Vergleich der ausgewählten Anbieter.</DialogDescription>
+                        </div>
+                        <Button 
+                          onClick={handleExportPDF} 
+                          disabled={isExporting}
+                          variant="outline"
+                          className="gap-2"
+                        >
+                          {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                          Als PDF speichern
+                        </Button>
+                      </div>
                     </DialogHeader>
                     <ScrollArea className="flex-1 p-6">
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 min-w-[800px]">
+                      <div id="comparison-content" className="grid grid-cols-1 md:grid-cols-4 gap-6 min-w-[800px] bg-slate-50 p-4">
                         {/* Labels Column */}
                         <div className="space-y-8 pt-20 hidden md:block">
                           <div className="h-8 font-semibold text-slate-500">Firma & Standort</div>
