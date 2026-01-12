@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { MessageSquare, Send, User, Loader2 } from "lucide-react";
+import { MessageSquare, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { useMember } from "@/hooks/useMember";
+import { LoginPrompt, MemberLogin } from "@/components/MemberLogin";
 
 interface CommentsProps {
   postId: number;
@@ -13,6 +14,7 @@ interface CommentsProps {
 
 export function Comments({ postId }: CommentsProps) {
   const utils = trpc.useUtils();
+  const { member, isAuthenticated, isLoading: memberLoading, refetch: refetchMember } = useMember();
   
   const { data: comments = [], isLoading } = trpc.comments.listByPost.useQuery(
     { postId },
@@ -23,8 +25,6 @@ export function Comments({ postId }: CommentsProps) {
     onSuccess: (data) => {
       toast.success(data.message);
       setNewComment("");
-      setAuthorName("");
-      setAuthorEmail("");
       utils.comments.listByPost.invalidate({ postId });
     },
     onError: (error) => {
@@ -33,17 +33,15 @@ export function Comments({ postId }: CommentsProps) {
   });
 
   const [newComment, setNewComment] = useState("");
-  const [authorName, setAuthorName] = useState("");
-  const [authorEmail, setAuthorEmail] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || !authorName.trim()) return;
+    if (!newComment.trim() || !member) return;
 
     createComment.mutate({
       postId,
-      authorName,
-      authorEmail: authorEmail || undefined,
+      authorName: member.name || member.email.split('@')[0],
+      authorEmail: member.email,
       content: newComment
     });
   };
@@ -67,62 +65,69 @@ export function Comments({ postId }: CommentsProps) {
         Kommentare ({comments.length})
       </h3>
 
-      {/* Comment Form */}
-      <form onSubmit={handleSubmit} className="mb-10 bg-slate-50 p-6 rounded-xl border border-slate-100">
-        <div className="grid gap-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="author" className="text-sm font-medium text-slate-700 mb-1 block">Ihr Name *</label>
-              <Input
-                id="author"
-                placeholder="Max Mustermann"
-                value={authorName}
-                onChange={(e) => setAuthorName(e.target.value)}
-                required
-                className="bg-white"
-              />
-            </div>
-            <div>
-              <label htmlFor="email" className="text-sm font-medium text-slate-700 mb-1 block">E-Mail (optional)</label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="ihre@email.de"
-                value={authorEmail}
-                onChange={(e) => setAuthorEmail(e.target.value)}
-                className="bg-white"
-              />
+      {/* Comment Form - Only for logged-in members */}
+      {memberLoading ? (
+        <div className="mb-10 bg-slate-50 p-6 rounded-xl border border-slate-100 text-center">
+          <Loader2 className="h-6 w-6 animate-spin mx-auto text-slate-400" />
+        </div>
+      ) : isAuthenticated && member ? (
+        <form onSubmit={handleSubmit} className="mb-10 bg-slate-50 p-6 rounded-xl border border-slate-100">
+          <div className="flex items-start gap-4 mb-4">
+            <Avatar className="h-10 w-10 border border-slate-200 bg-white">
+              <AvatarFallback className="bg-orange-50 text-orange-600 font-medium text-sm">
+                {getInitials(member.name || member.email)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <p className="font-medium text-slate-900">{member.name || member.email.split('@')[0]}</p>
+              <p className="text-xs text-slate-500">{member.email}</p>
             </div>
           </div>
-          <div>
-            <label htmlFor="comment" className="text-sm font-medium text-slate-700 mb-1 block">Ihre Frage oder Anmerkung *</label>
-            <Textarea
-              id="comment"
-              placeholder="Schreiben Sie einen Kommentar..."
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              required
-              className="bg-white min-h-[100px]"
+          <div className="grid gap-4">
+            <div>
+              <label htmlFor="comment" className="text-sm font-medium text-slate-700 mb-1 block">Ihre Frage oder Anmerkung</label>
+              <Textarea
+                id="comment"
+                placeholder="Schreiben Sie einen Kommentar..."
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                required
+                className="bg-white min-h-[100px]"
+              />
+            </div>
+            <p className="text-xs text-slate-500">
+              Kommentare werden vor der Veröffentlichung geprüft.
+            </p>
+            <div className="flex justify-end">
+              <Button type="submit" disabled={createComment.isPending || !newComment.trim()} className="bg-slate-900 hover:bg-slate-800 text-white">
+                {createComment.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Wird gesendet...
+                  </>
+                ) : (
+                  <>
+                    Kommentar senden <Send className="ml-2 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </form>
+      ) : (
+        <div className="mb-10 bg-slate-50 p-6 rounded-xl border border-slate-100">
+          <div className="text-center">
+            <p className="text-slate-600 mb-4">Melden Sie sich an, um einen Kommentar zu schreiben.</p>
+            <MemberLogin 
+              trigger={
+                <Button>
+                  Anmelden zum Kommentieren
+                </Button>
+              }
+              onSuccess={() => refetchMember()}
             />
           </div>
-          <p className="text-xs text-slate-500">
-            Kommentare werden vor der Veröffentlichung geprüft.
-          </p>
-          <div className="flex justify-end">
-            <Button type="submit" disabled={createComment.isPending} className="bg-slate-900 hover:bg-slate-800 text-white">
-              {createComment.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Wird gesendet...
-                </>
-              ) : (
-                <>
-                  Kommentar senden <Send className="ml-2 h-4 w-4" />
-                </>
-              )}
-            </Button>
-          </div>
         </div>
-      </form>
+      )}
 
       {/* Comments List */}
       {isLoading ? (

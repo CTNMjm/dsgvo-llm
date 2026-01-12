@@ -8,7 +8,8 @@ import {
   platformReviews, PlatformReview, InsertPlatformReview,
   leads, Lead, InsertLead,
   newsletterSubscribers, NewsletterSubscriber, InsertNewsletterSubscriber,
-  platformSuggestions, PlatformSuggestion, InsertPlatformSuggestion
+  platformSuggestions, PlatformSuggestion, InsertPlatformSuggestion,
+  apiPricing, ApiPricing, InsertApiPricing
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -381,6 +382,53 @@ export async function updateSuggestionStatus(id: number, status: 'pending' | 're
     status,
     adminNotes: adminNotes || undefined
   }).where(eq(platformSuggestions.id, id));
+}
+
+// ============================================
+// Admin Statistics
+// ============================================
+
+// ============================================
+// API Pricing Functions
+// ============================================
+
+export async function getApiPricingByPlatform(platformId: number): Promise<ApiPricing[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(apiPricing)
+    .where(and(eq(apiPricing.platformId, platformId), eq(apiPricing.isAvailable, true)))
+    .orderBy(apiPricing.provider, apiPricing.modelName);
+}
+
+export async function getAllApiPricing(): Promise<ApiPricing[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(apiPricing)
+    .where(eq(apiPricing.isAvailable, true))
+    .orderBy(apiPricing.provider, apiPricing.modelName);
+}
+
+export async function createApiPricing(pricing: InsertApiPricing): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.insert(apiPricing).values(pricing);
+}
+
+export async function updateApiPricing(id: number, pricing: Partial<InsertApiPricing>): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(apiPricing).set(pricing).where(eq(apiPricing.id, id));
+}
+
+export async function deleteApiPricing(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.delete(apiPricing).where(eq(apiPricing.id, id));
 }
 
 // ============================================

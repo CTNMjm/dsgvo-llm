@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, ExternalLink, CheckCircle2, X, Building2, MapPin, Users, Shield, Coins, Layers, Loader2 } from "lucide-react";
 import { ProsList, ConsList } from "@/components/ui-custom";
 import { Reviews } from "@/components/Reviews";
+import { ApiPricing } from "@/components/ApiPricing";
 import { LeadForm } from "@/components/LeadForm";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -207,6 +208,11 @@ export default function PlatformDetail() {
               <ConsList items={cons} />
             </div>
           </div>
+        </div>
+
+        {/* API Pricing Section */}
+        <div className="mt-12">
+          <ApiPricing platformId={platform.id} />
         </div>
 
         {/* Reviews Section */}

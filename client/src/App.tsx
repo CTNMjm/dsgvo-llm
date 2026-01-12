@@ -9,6 +9,9 @@ import PlatformDetail from "./pages/PlatformDetail";
 import Admin from "./pages/Admin";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
+import Datenschutz from "./pages/Datenschutz";
+import Impressum from "./pages/Impressum";
+import Profil from "./pages/Profil";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -19,6 +22,9 @@ function Router() {
       <Route path={"/admin"} component={Admin} />
       <Route path={"/blog"} component={Blog} />
       <Route path={"/blog/:id"} component={BlogPost} />
+      <Route path={"/datenschutz"} component={Datenschutz} />
+      <Route path={"/impressum"} component={Impressum} />
+      <Route path={"/profil"} component={Profil} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

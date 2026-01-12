@@ -7,6 +7,7 @@ import { TRPCError } from "@trpc/server";
 import * as db from "./db";
 import { notifyNewLead, notifyNewReview, notifyNewComment, notifyNewSuggestion, notifyNewSubscriber } from "./services/email";
 import { checkForSpam, getModerationPriority } from "./services/spam";
+import * as magicLink from "./services/magicLink";
 
 // Admin middleware
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -26,6 +27,77 @@ export const appRouter = router({
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
+  }),
+
+  // ============================================
+  // Member Auth (Magic Link)
+  // ============================================
+  memberAuth: router({
+    // Request login code
+    requestCode: publicProcedure
+      .input(z.object({ email: z.string().email() }))
+      .mutation(async ({ input, ctx }) => {
+        const ipAddress = ctx.req.ip || ctx.req.headers['x-forwarded-for']?.toString();
+        return magicLink.requestLoginCode(input.email, ipAddress);
+      }),
+    
+    // Verify code and login
+    verifyCode: publicProcedure
+      .input(z.object({ email: z.string().email(), code: z.string().length(6) }))
+      .mutation(async ({ input, ctx }) => {
+        const ipAddress = ctx.req.ip || ctx.req.headers['x-forwarded-for']?.toString();
+        const userAgent = ctx.req.headers['user-agent'];
+        const result = await magicLink.verifyLoginCode(input.email, input.code, ipAddress, userAgent);
+        
+        if (result.success && result.token) {
+          // Set session cookie
+          ctx.res.cookie('member_session', result.token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+          });
+        }
+        
+        return result;
+      }),
+    
+    // Get current member
+    me: publicProcedure.query(async ({ ctx }) => {
+      const token = ctx.req.cookies?.member_session;
+      if (!token) return null;
+      return magicLink.validateSession(token);
+    }),
+    
+    // Logout
+    logout: publicProcedure.mutation(async ({ ctx }) => {
+      const token = ctx.req.cookies?.member_session;
+      if (token) {
+        await magicLink.logout(token);
+        ctx.res.clearCookie('member_session');
+      }
+      return { success: true };
+    }),
+    
+    // Update profile
+    updateProfile: publicProcedure
+      .input(z.object({
+        name: z.string().min(1).max(200).optional(),
+        bio: z.string().max(500).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const token = ctx.req.cookies?.member_session;
+        if (!token) {
+          throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Bitte melden Sie sich an.' });
+        }
+        
+        const member = await magicLink.validateSession(token);
+        if (!member) {
+          throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Sitzung abgelaufen.' });
+        }
+        
+        return magicLink.updateMemberProfile(member.id, input);
+      }),
   }),
 
   // ============================================
@@ -406,6 +478,62 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         await db.updateSuggestionStatus(input.id, input.status, input.adminNotes);
+        return { success: true };
+      }),
+  }),
+
+  // ============================================
+  // API Pricing Routes
+  // ============================================
+  apiPricing: router({
+    listByPlatform: publicProcedure
+      .input(z.object({ platformId: z.number() }))
+      .query(async ({ input }) => {
+        return db.getApiPricingByPlatform(input.platformId);
+      }),
+    
+    listAll: publicProcedure.query(async () => {
+      return db.getAllApiPricing();
+    }),
+    
+    create: adminProcedure
+      .input(z.object({
+        platformId: z.number(),
+        provider: z.string(),
+        modelName: z.string(),
+        modelVersion: z.string().optional(),
+        inputPricePerMillion: z.string(),
+        outputPricePerMillion: z.string(),
+        regions: z.array(z.string()).optional(),
+        notes: z.string().optional()
+      }))
+      .mutation(async ({ input }) => {
+        await db.createApiPricing(input);
+        return { success: true, message: 'API-Preis hinzugefügt.' };
+      }),
+    
+    update: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        provider: z.string().optional(),
+        modelName: z.string().optional(),
+        modelVersion: z.string().optional(),
+        inputPricePerMillion: z.string().optional(),
+        outputPricePerMillion: z.string().optional(),
+        regions: z.array(z.string()).optional(),
+        notes: z.string().optional(),
+        isAvailable: z.boolean().optional()
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        await db.updateApiPricing(id, data);
+        return { success: true };
+      }),
+    
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.deleteApiPricing(input.id);
         return { success: true };
       }),
   }),

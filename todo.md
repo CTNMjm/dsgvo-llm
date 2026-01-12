@@ -60,3 +60,31 @@
 - [x] Spam-Score-Logging für Debugging
 - [x] Spam-Wortliste und Filterregeln (implementiert in spam.ts)
 - [x] Moderations-Queue mit Prioritäten (getModerationPriority Funktion)
+
+## Neue Features (Phase 48+)
+
+### Rechtliche Seiten
+- [x] Datenschutzseite erstellen
+- [x] Impressum erstellen
+- [x] Footer-Links zu rechtlichen Seiten
+
+### Magic Link Login
+- [x] E-Mail-basiertes Login mit Einmal-Code
+- [x] Code-Generierung und Validierung
+- [x] Session-Management für eingeloggte Nutzer
+- [x] Login-UI Komponente (MemberLogin, MemberMenu, LoginPrompt)
+
+### Basis-Profile
+- [x] Profil-Datenbank-Schema (Name, E-Mail, Profilbild optional)
+- [x] Profil-Bearbeitungsseite (/profil)
+- [x] Profilanzeige bei Kommentaren (via Member-System)
+
+### Zugriffsbeschränkung
+- [x] Kommentare nur für eingeloggte Nutzer
+- [x] Vorschläge nur für eingeloggte Nutzer
+- [x] Login-Aufforderung bei nicht eingeloggten Nutzern
+
+### API-Preise (Ausbaustufe)
+- [x] Datenbank-Schema für API-Preise (Modell, Input/Output-Preis)
+- [x] API-Preise UI auf Plattform-Detailseite
+- [x] API-Routen (CRUD) für Admin-Interface vorbereitet

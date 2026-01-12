@@ -219,3 +219,99 @@ export const platformSuggestions = mysqlTable("platform_suggestions", {
 
 export type PlatformSuggestion = typeof platformSuggestions.$inferSelect;
 export type InsertPlatformSuggestion = typeof platformSuggestions.$inferInsert;
+
+/**
+ * Members - Public user accounts for comments/suggestions
+ * Separate from admin users table
+ */
+export const members = mysqlTable("members", {
+  id: int("id").autoincrement().primaryKey(),
+  email: varchar("email", { length: 320 }).notNull().unique(),
+  name: varchar("name", { length: 200 }),
+  
+  // Profile
+  bio: text("bio"),
+  avatarUrl: varchar("avatarUrl", { length: 500 }),
+  
+  // Status
+  isVerified: boolean("isVerified").default(false),
+  isActive: boolean("isActive").default(true),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  lastLoginAt: timestamp("lastLoginAt"),
+});
+
+export type Member = typeof members.$inferSelect;
+export type InsertMember = typeof members.$inferInsert;
+
+/**
+ * Magic Link Login Codes
+ */
+export const loginCodes = mysqlTable("login_codes", {
+  id: int("id").autoincrement().primaryKey(),
+  email: varchar("email", { length: 320 }).notNull(),
+  code: varchar("code", { length: 6 }).notNull(), // 6-digit code
+  
+  // Expiration and usage
+  expiresAt: timestamp("expiresAt").notNull(),
+  usedAt: timestamp("usedAt"),
+  
+  // Security
+  attempts: int("attempts").default(0),
+  ipAddress: varchar("ipAddress", { length: 45 }),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type LoginCode = typeof loginCodes.$inferSelect;
+export type InsertLoginCode = typeof loginCodes.$inferInsert;
+
+/**
+ * Member Sessions
+ */
+export const memberSessions = mysqlTable("member_sessions", {
+  id: int("id").autoincrement().primaryKey(),
+  memberId: int("memberId").notNull(),
+  token: varchar("token", { length: 64 }).notNull().unique(),
+  
+  expiresAt: timestamp("expiresAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  lastUsedAt: timestamp("lastUsedAt").defaultNow().notNull(),
+  
+  // Device info
+  userAgent: text("userAgent"),
+  ipAddress: varchar("ipAddress", { length: 45 }),
+});
+
+export type MemberSession = typeof memberSessions.$inferSelect;
+export type InsertMemberSession = typeof memberSessions.$inferInsert;
+
+/**
+ * API Pricing - Model prices per platform
+ */
+export const apiPricing = mysqlTable("api_pricing", {
+  id: int("id").autoincrement().primaryKey(),
+  platformId: int("platformId").notNull(),
+  
+  // Model info
+  provider: varchar("provider", { length: 100 }).notNull(), // OpenAI, Anthropic, Google, etc.
+  modelName: varchar("modelName", { length: 200 }).notNull(),
+  modelVersion: varchar("modelVersion", { length: 100 }),
+  
+  // Pricing (in EUR per 1M tokens)
+  inputPricePerMillion: varchar("inputPricePerMillion", { length: 50 }).notNull(),
+  outputPricePerMillion: varchar("outputPricePerMillion", { length: 50 }).notNull(),
+  
+  // Availability
+  regions: json("regions").$type<string[]>(), // ["EU", "US", "Global"]
+  isAvailable: boolean("isAvailable").default(true),
+  
+  // Metadata
+  notes: text("notes"),
+  lastUpdated: timestamp("lastUpdated").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ApiPricing = typeof apiPricing.$inferSelect;
+export type InsertApiPricing = typeof apiPricing.$inferInsert;

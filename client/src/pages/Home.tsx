@@ -399,9 +399,11 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 py-12 mt-12">
         <div className="container text-center text-slate-500 text-sm">
-          <div className="flex justify-center gap-6 mb-6 font-medium">
+          <div className="flex justify-center gap-6 mb-6 font-medium flex-wrap">
             <Link href="/blog" className="text-slate-600 hover:text-orange-500 transition-colors">Blog & Ratgeber</Link>
-            <Link href="/admin" className="text-slate-600 hover:text-orange-500 transition-colors">Admin Login</Link>
+            <Link href="/datenschutz" className="text-slate-600 hover:text-orange-500 transition-colors">Datenschutz</Link>
+            <Link href="/impressum" className="text-slate-600 hover:text-orange-500 transition-colors">Impressum</Link>
+            <Link href="/admin" className="text-slate-600 hover:text-orange-500 transition-colors">Admin</Link>
           </div>
           <p className="mb-4">
             Diese Übersicht dient nur zu Informationszwecken. Alle Angaben ohne Gewähr. <br/>
