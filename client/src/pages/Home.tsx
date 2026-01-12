@@ -3,6 +3,7 @@ import { platforms, Platform } from "@/lib/data";
 import { PlatformCard, SectionHeading, FeatureBadge, ProsList, ConsList } from "@/components/ui-custom";
 import { Search, Filter, X, ArrowRightLeft, CheckCircle2, Info, ExternalLink } from "lucide-react";
 import { CostCalculator } from "@/components/CostCalculator";
+import { FeedbackForm } from "@/components/FeedbackForm";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -69,16 +70,19 @@ export default function Home() {
         </div>
         <div className="container relative z-10 py-20 md:py-32">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-sm font-medium text-orange-400 mb-6 backdrop-blur-sm">
-              <Info className="mr-2 h-4 w-4" />
-              Stand: Januar 2026
+            <div className="flex flex-wrap items-center gap-4 mb-6">
+              <div className="inline-flex items-center rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-sm font-medium text-orange-400 backdrop-blur-sm">
+                <Info className="mr-2 h-4 w-4" />
+                Stand: Januar 2026
+              </div>
+              <FeedbackForm />
             </div>
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 leading-tight">
               DSGVO-konforme <br/>
               <span className="text-orange-500">LLM-Plattformen</span> im Vergleich
             </h1>
             <p className="text-lg md:text-xl text-slate-300 mb-10 max-w-2xl leading-relaxed">
-              Finden Sie die perfekte Alternative zu Langdock. Filtern Sie nach Preismodell, Funktionen und Compliance-Standards für Ihr Unternehmen.
+              Vergleichen Sie die besten DSGVO-konformen KI-Lösungen für Ihr Unternehmen. Filtern Sie nach Preismodell, Funktionen und Compliance-Standards.
             </p>
             
             {/* Search & Filter Bar */}
