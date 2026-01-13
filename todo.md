@@ -276,9 +276,3 @@
 - [x] S3-Upload-Funktion für Logos
 - [x] Bild-Upload-Komponente im Plattform-Formular
 - [x] Vorschau für hochgeladene Bilder
-
-
-## Deployment
-- [x] .env.example Datei für Coolify mit PostgreSQL erstellen
-
-- [x] SQL-Seed-Dateien für PostgreSQL-Import erstellen
