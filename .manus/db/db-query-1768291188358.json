@@ -1,0 +1,85 @@
+{
+  "query": "SELECT column_name FROM information_schema.columns WHERE table_name = 'platforms';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3n6qTNezUaiqXwT.dab73406a049 --database 83VRahLS37UxtzQV8DA4uM --execute SELECT column_name FROM information_schema.columns WHERE table_name = 'platforms';",
+  "rows": [
+    {
+      "column_name": "id"
+    },
+    {
+      "column_name": "slug"
+    },
+    {
+      "column_name": "name"
+    },
+    {
+      "column_name": "company"
+    },
+    {
+      "column_name": "location"
+    },
+    {
+      "column_name": "url"
+    },
+    {
+      "column_name": "pricingModel"
+    },
+    {
+      "column_name": "basePrice"
+    },
+    {
+      "column_name": "tokenBased"
+    },
+    {
+      "column_name": "compliance"
+    },
+    {
+      "column_name": "customGPTs"
+    },
+    {
+      "column_name": "customGPTDetails"
+    },
+    {
+      "column_name": "features"
+    },
+    {
+      "column_name": "pros"
+    },
+    {
+      "column_name": "cons"
+    },
+    {
+      "column_name": "description"
+    },
+    {
+      "column_name": "screenshotUrl"
+    },
+    {
+      "column_name": "employees"
+    },
+    {
+      "column_name": "customers"
+    },
+    {
+      "column_name": "developers"
+    },
+    {
+      "column_name": "isActive"
+    },
+    {
+      "column_name": "createdAt"
+    },
+    {
+      "column_name": "updatedAt"
+    },
+    {
+      "column_name": "logoUrl"
+    },
+    {
+      "column_name": "websiteUrl"
+    }
+  ],
+  "messages": [],
+  "stdout": "column_name\nid\nslug\nname\ncompany\nlocation\nurl\npricingModel\nbasePrice\ntokenBased\ncompliance\ncustomGPTs\ncustomGPTDetails\nfeatures\npros\ncons\ndescription\nscreenshotUrl\nemployees\ncustomers\ndevelopers\nisActive\ncreatedAt\nupdatedAt\nlogoUrl\nwebsiteUrl\n",
+  "stderr": "",
+  "execution_time_ms": 58
+}

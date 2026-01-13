@@ -1,0 +1,82 @@
+{
+  "query": "SELECT name, slug, logoUrl, websiteUrl FROM platforms;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3n6qTNezUaiqXwT.dab73406a049 --database 83VRahLS37UxtzQV8DA4uM --execute SELECT name, slug, logoUrl, websiteUrl FROM platforms;",
+  "rows": [
+    {
+      "name": "Langdock",
+      "slug": "langdock",
+      "logoUrl": "/logos/langdock.jpg",
+      "websiteUrl": "https://langdock.com"
+    },
+    {
+      "name": "ka1.ai",
+      "slug": "ka1ai",
+      "logoUrl": "NULL",
+      "websiteUrl": "NULL"
+    },
+    {
+      "name": "Logicc",
+      "slug": "logicc",
+      "logoUrl": "NULL",
+      "websiteUrl": "NULL"
+    },
+    {
+      "name": "Plotdesk",
+      "slug": "plotdesk",
+      "logoUrl": "NULL",
+      "websiteUrl": "NULL"
+    },
+    {
+      "name": "kamium",
+      "slug": "kamium",
+      "logoUrl": "NULL",
+      "websiteUrl": "NULL"
+    },
+    {
+      "name": "patris.ai",
+      "slug": "patrisai",
+      "logoUrl": "NULL",
+      "websiteUrl": "NULL"
+    },
+    {
+      "name": "BaseGPT",
+      "slug": "basegpt",
+      "logoUrl": "/logos/openai.png",
+      "websiteUrl": "https://openai.com"
+    },
+    {
+      "name": "DSGPT",
+      "slug": "dsgpt",
+      "logoUrl": "/logos/openai.png",
+      "websiteUrl": "https://openai.com"
+    },
+    {
+      "name": "nele.ai",
+      "slug": "neleai",
+      "logoUrl": "/logos/neuroflash.jpg",
+      "websiteUrl": "https://neuroflash.com"
+    },
+    {
+      "name": "amberAI",
+      "slug": "amberai",
+      "logoUrl": "NULL",
+      "websiteUrl": "NULL"
+    },
+    {
+      "name": "AI-UI (AIVA)",
+      "slug": "aiui",
+      "logoUrl": "NULL",
+      "websiteUrl": "NULL"
+    },
+    {
+      "name": "Mistral Le Chat",
+      "slug": "mistral",
+      "logoUrl": "/logos/mistral.png",
+      "websiteUrl": "https://mistral.ai"
+    }
+  ],
+  "messages": [],
+  "stdout": "name\tslug\tlogoUrl\twebsiteUrl\nLangdock\tlangdock\t/logos/langdock.jpg\thttps://langdock.com\nka1.ai\tka1ai\tNULL\tNULL\nLogicc\tlogicc\tNULL\tNULL\nPlotdesk\tplotdesk\tNULL\tNULL\nkamium\tkamium\tNULL\tNULL\npatris.ai\tpatrisai\tNULL\tNULL\nBaseGPT\tbasegpt\t/logos/openai.png\thttps://openai.com\nDSGPT\tdsgpt\t/logos/openai.png\thttps://openai.com\nnele.ai\tneleai\t/logos/neuroflash.jpg\thttps://neuroflash.com\namberAI\tamberai\tNULL\tNULL\nAI-UI (AIVA)\taiui\tNULL\tNULL\nMistral Le Chat\tmistral\t/logos/mistral.png\thttps://mistral.ai\n",
+  "stderr": "",
+  "execution_time_ms": 56
+}
