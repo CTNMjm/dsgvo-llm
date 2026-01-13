@@ -3,7 +3,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { SEO, SEOPresets } from "@/components/SEO";
 import { PlatformCard, FeatureBadge, ProsList, ConsList } from "@/components/ui-custom";
-import { Search, X, ArrowRightLeft, CheckCircle2, Info, ExternalLink, Download, Loader2 } from "lucide-react";
+import { Search, X, ArrowRightLeft, CheckCircle2, Info, ExternalLink, Download, Loader2, Scale } from "lucide-react";
 import { exportComparisonToPDF } from "@/lib/pdf-export";
 import { toast } from "sonner";
 import { CostCalculator } from "@/components/CostCalculator";
@@ -66,6 +66,37 @@ export default function Home() {
   const [compareList, setCompareList] = useState<number[]>([]);
   const [showCompareModal, setShowCompareModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  
+  // Vergleichs-Warenkorb State
+  const [compareCart, setCompareCart] = useState<{id: number, slug: string}[]>([]);
+  
+  // Vergleichs-Warenkorb Funktionen
+  const toggleCompareCart = (platformId: number, platformSlug: string) => {
+    setCompareCart(prev => {
+      const exists = prev.find(p => p.id === platformId);
+      if (exists) {
+        return prev.filter(p => p.id !== platformId);
+      }
+      if (prev.length >= 3) {
+        toast.error("Maximal 3 Plattformen können verglichen werden");
+        return prev;
+      }
+      return [...prev, { id: platformId, slug: platformSlug }];
+    });
+  };
+  
+  const isInCompareCart = (platformId: number) => {
+    return compareCart.some(p => p.id === platformId);
+  };
+  
+  const goToCompare = () => {
+    if (compareCart.length < 2) {
+      toast.error("Bitte wählen Sie mindestens 2 Plattformen zum Vergleichen");
+      return;
+    }
+    const ids = compareCart.map(p => p.id).join(",");
+    window.location.href = `/vergleich?ids=${ids}`;
+  };
 
   const handleExportPDF = async () => {
     setIsExporting(true);
@@ -359,6 +390,7 @@ export default function Home() {
                   key={platform.id} 
                   platform={{
                     id: platform.slug,
+                    numericId: platform.id,
                     name: platform.name,
                     company: platform.company,
                     location: platform.location || '',
@@ -379,6 +411,8 @@ export default function Home() {
                   }} 
                   onCompare={() => toggleCompare(platform.id)}
                   isSelected={compareList.includes(platform.id)}
+                  onAddToCompare={toggleCompareCart}
+                  isInCompareCart={isInCompareCart(platform.id)}
                 />
               ))}
             </div>
@@ -424,6 +458,42 @@ export default function Home() {
           <p>© 2026 LLM-Plattform Vergleich. Erstellt mit Manus.</p>
         </div>
       </footer>
+      
+      {/* Floating Compare Cart */}
+      {compareCart.length > 0 && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <div className="bg-slate-900 text-white rounded-xl shadow-2xl p-4 border border-slate-700">
+            <div className="flex items-center gap-3 mb-3">
+              <Scale className="h-5 w-5 text-blue-400" />
+              <span className="font-semibold">Vergleich ({compareCart.length}/3)</span>
+            </div>
+            <div className="space-y-2 mb-3">
+              {compareCart.map(item => {
+                const platform = platforms.find(p => p.id === item.id);
+                return (
+                  <div key={item.id} className="flex items-center justify-between gap-2 text-sm">
+                    <span className="text-slate-300 truncate max-w-[120px]">{platform?.name}</span>
+                    <button 
+                      onClick={() => toggleCompareCart(item.id, item.slug)}
+                      className="text-slate-500 hover:text-red-400 transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+            <button
+              onClick={goToCompare}
+              disabled={compareCart.length < 2}
+              className="w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg font-medium transition-colors text-sm flex items-center justify-center gap-2"
+            >
+              <ArrowRightLeft className="h-4 w-4" />
+              Jetzt vergleichen
+            </button>
+          </div>
+        </div>
+      )}
     </div>
     </>
   );

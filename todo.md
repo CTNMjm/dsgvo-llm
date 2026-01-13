@@ -119,3 +119,21 @@
 - [x] Auswahl von bis zu 3 API-Anbietern
 - [x] Vergleichstabelle mit Preisen und Eckdaten
 - [x] Nebeneinander-Ansicht der Plattformen (/vergleich) Anbieter
+
+
+## Neue Features (Phase 51+)
+
+### PDF-Export für Vergleich
+- [x] PDF-Generierung für Vergleichstabelle (via Browser-Print)
+- [x] Download-Button auf Vergleichsseite
+- [x] Formatierung für professionelle Entscheidungsvorlagen
+
+### Vergleich-Button auf Plattformkarten
+- [x] "Zum Vergleich hinzufügen"-Button auf Startseite
+- [x] Vergleichs-Warenkorb mit ausgewählten Plattformen (Floating Widget)
+- [x] Navigation zur Vergleichsseite mit Vorauswahl
+
+### SMTP-Konfiguration
+- [x] SMTP-Secrets vorbereitet (Host, Port, User, Pass, Admin-Email) - später einzugeben
+- [x] E-Mail-Service bereits implementiert (server/services/email.ts)
+- [x] Magic-Link-Login Code bereit (server/services/magicLink.ts)

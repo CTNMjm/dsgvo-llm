@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
-import { Check, X, ExternalLink, Shield, Building2, Users, Coins, ArrowRight } from "lucide-react";
-import { Link } from "wouter";
+import { Check, X, ExternalLink, Shield, Building2, Users, Coins, ArrowRight, Scale } from "lucide-react";
+import { Link, useLocation } from "wouter";
 
 export const SectionHeading = ({ children, className }: { children: React.ReactNode; className?: string }) => (
   <h2 className={cn("text-3xl font-bold tracking-tight text-slate-900 mb-6", className)}>
@@ -36,12 +36,29 @@ export const ConsList = ({ items }: { items: string[] }) => (
   </ul>
 );
 
-export const PlatformCard = ({ platform, onCompare, isSelected }: { platform: any, onCompare: (id: string) => void, isSelected: boolean }) => {
+export const PlatformCard = ({ platform, onCompare, isSelected, onAddToCompare, isInCompareCart }: { 
+  platform: any, 
+  onCompare: (id: string) => void, 
+  isSelected: boolean,
+  onAddToCompare?: (platformId: number, platformSlug: string) => void,
+  isInCompareCart?: boolean
+}) => {
+  const [, navigate] = useLocation();
+  
   return (
     <div className={cn(
       "group relative flex flex-col overflow-hidden rounded-xl border bg-white transition-all duration-300 hover:shadow-lg hover:-translate-y-1",
-      isSelected ? "ring-2 ring-orange-500 border-orange-500 shadow-md" : "border-slate-200"
+      isSelected ? "ring-2 ring-orange-500 border-orange-500 shadow-md" : "border-slate-200",
+      isInCompareCart ? "ring-2 ring-blue-500 border-blue-500" : ""
     )}>
+      {/* Compare Cart Badge */}
+      {isInCompareCart && (
+        <div className="absolute top-2 right-2 z-10 bg-blue-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+          <Scale className="h-3 w-3" />
+          Im Vergleich
+        </div>
+      )}
+      
       <div className="p-6 flex-1">
         <div className="flex items-start justify-between mb-4">
           <div>
@@ -76,17 +93,32 @@ export const PlatformCard = ({ platform, onCompare, isSelected }: { platform: an
 
       <div className="bg-slate-50 p-4 border-t border-slate-100 flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3">
-          <button 
-            onClick={() => onCompare(platform.id)}
-            className={cn(
-              "flex-1 text-sm font-medium py-2 px-3 rounded-lg transition-colors",
-              isSelected 
-                ? "bg-orange-100 text-orange-700 hover:bg-orange-200" 
-                : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900"
-            )}
-          >
-            {isSelected ? "Ausgewählt" : "Vergleichen"}
-          </button>
+          {onAddToCompare ? (
+            <button 
+              onClick={() => onAddToCompare(platform.numericId, platform.id)}
+              className={cn(
+                "flex-1 text-sm font-medium py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1",
+                isInCompareCart 
+                  ? "bg-blue-100 text-blue-700 hover:bg-blue-200" 
+                  : "bg-white border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200"
+              )}
+            >
+              <Scale className="h-4 w-4" />
+              {isInCompareCart ? "Entfernen" : "Zum Vergleich"}
+            </button>
+          ) : (
+            <button 
+              onClick={() => onCompare(platform.id)}
+              className={cn(
+                "flex-1 text-sm font-medium py-2 px-3 rounded-lg transition-colors",
+                isSelected 
+                  ? "bg-orange-100 text-orange-700 hover:bg-orange-200" 
+                  : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+              )}
+            >
+              {isSelected ? "Ausgewählt" : "Vergleichen"}
+            </button>
+          )}
           <a 
             href={platform.url} 
             target="_blank" 

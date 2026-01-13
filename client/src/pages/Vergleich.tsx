@@ -15,7 +15,9 @@ import {
   MapPin,
   ExternalLink,
   Loader2,
-  Scale
+  Scale,
+  Download,
+  FileText
 } from "lucide-react";
 
 export default function Vergleich() {
@@ -98,6 +100,126 @@ export default function Vergleich() {
     return Math.min(...prices);
   };
 
+  // PDF Export function
+  const exportToPDF = async () => {
+    if (selectedPlatforms.length === 0) return;
+    
+    // Create HTML content for PDF
+    const platformNames = selectedPlatforms.map(p => p?.name || "").join(" vs ");
+    const today = new Date().toLocaleDateString("de-DE");
+    
+    let htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Plattform-Vergleich: ${platformNames}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 40px; color: #1e293b; }
+          h1 { color: #0f172a; font-size: 24px; margin-bottom: 8px; }
+          .subtitle { color: #64748b; font-size: 14px; margin-bottom: 32px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+          th { background: #f8fafc; font-weight: 600; color: #475569; }
+          .platform-header { background: #0f172a; color: white; font-weight: bold; }
+          .check { color: #22c55e; }
+          .cross { color: #94a3b8; }
+          .price { color: #22c55e; font-family: monospace; font-weight: bold; }
+          .rating { color: #f97316; }
+          .tag { display: inline-block; padding: 2px 8px; background: #f1f5f9; border-radius: 4px; font-size: 12px; margin: 2px; }
+          .pro { color: #22c55e; }
+          .con { color: #ef4444; }
+          .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #94a3b8; }
+        </style>
+      </head>
+      <body>
+        <h1>Plattform-Vergleich</h1>
+        <p class="subtitle">Erstellt am ${today} | DSGVO-konforme LLM-Plattformen</p>
+        
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 150px;">Merkmal</th>
+              ${selectedPlatforms.map(p => `<th class="platform-header">${p?.name || ""}</th>`).join("")}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Firma</strong></td>
+              ${selectedPlatforms.map(p => `<td>${p?.company || "-"}</td>`).join("")}
+            </tr>
+            <tr>
+              <td><strong>Standort</strong></td>
+              ${selectedPlatforms.map(p => `<td>${p?.location || "-"}</td>`).join("")}
+            </tr>
+            <tr>
+              <td><strong>Preismodell</strong></td>
+              ${selectedPlatforms.map(p => `<td>${p?.pricingModel || "-"}</td>`).join("")}
+            </tr>
+            <tr>
+              <td><strong>Basispreis</strong></td>
+              ${selectedPlatforms.map(p => `<td>${p?.basePrice || "-"}</td>`).join("")}
+            </tr>
+            <tr>
+              <td><strong>Günstigster API-Preis</strong></td>
+              ${selectedPlatforms.map((p, i) => {
+                const pricing = pricingData[selectedIds.indexOf(p?.id || 0)];
+                const cheapest = getCheapestInputPrice(pricing);
+                return `<td class="price">${cheapest !== null ? cheapest.toFixed(2) + "€/1M Token" : "-"}</td>`;
+              }).join("")}
+            </tr>
+            <tr>
+              <td><strong>Bewertung</strong></td>
+              ${selectedPlatforms.map((p, i) => {
+                const rating = ratingData[selectedIds.indexOf(p?.id || 0)];
+                return `<td class="rating">${rating && rating.count > 0 ? `★ ${rating.average.toFixed(1)} (${rating.count})` : "Keine"}</td>`;
+              }).join("")}
+            </tr>
+            <tr>
+              <td><strong>Compliance</strong></td>
+              ${selectedPlatforms.map(p => {
+                const compliance = p?.compliance as string[] | null;
+                return `<td>${compliance?.map(c => `<span class="tag">${c}</span>`).join(" ") || "-"}</td>`;
+              }).join("")}
+            </tr>
+            <tr>
+              <td><strong>Vorteile</strong></td>
+              ${selectedPlatforms.map(p => {
+                const pros = p?.pros as string[] | null;
+                return `<td>${pros?.slice(0, 3).map(pro => `<div class="pro">✓ ${pro}</div>`).join("") || "-"}</td>`;
+              }).join("")}
+            </tr>
+            <tr>
+              <td><strong>Nachteile</strong></td>
+              ${selectedPlatforms.map(p => {
+                const cons = p?.cons as string[] | null;
+                return `<td>${cons?.slice(0, 3).map(con => `<div class="con">✗ ${con}</div>`).join("") || "-"}</td>`;
+              }).join("")}
+            </tr>
+          </tbody>
+        </table>
+        
+        <div class="footer">
+          <p>Dieser Vergleich wurde automatisch generiert von LLM-Plattform Vergleich.</p>
+          <p>Alle Angaben ohne Gewähr. Stand: ${today}</p>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    // Create blob and download
+    const blob = new Blob([htmlContent], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    
+    // Open print dialog for PDF
+    const printWindow = window.open(url, "_blank");
+    if (printWindow) {
+      printWindow.onload = () => {
+        printWindow.print();
+      };
+    }
+  };
+
   // Comparison rows
   const comparisonRows = [
     {
@@ -157,7 +279,18 @@ export default function Vergleich() {
                   Plattform-Vergleich
                 </h1>
               </div>
-              <MemberMenu />
+              <div className="flex items-center gap-4">
+                {selectedPlatforms.length > 0 && (
+                  <button
+                    onClick={exportToPDF}
+                    className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors text-sm"
+                  >
+                    <Download className="h-4 w-4" />
+                    Als PDF exportieren
+                  </button>
+                )}
+                <MemberMenu />
+              </div>
             </div>
           </div>
         </header>
