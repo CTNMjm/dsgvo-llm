@@ -288,3 +288,8 @@
 
 - [x] Testskript für Datenbankverbindung erstellen
 - [x] Überprüfung der Seed-Daten implementieren
+
+
+## Dockerfile Fix (Phase 73)
+
+- [x] Dockerfile anpassen: patches-Ordner kopieren
