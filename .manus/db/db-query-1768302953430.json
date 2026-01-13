@@ -1,0 +1,22 @@
+{
+  "query": "SELECT id, slug, title, category FROM blog_posts ORDER BY id;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3n6qTNezUaiqXwT.dab73406a049 --database 83VRahLS37UxtzQV8DA4uM --execute SELECT id, slug, title, category FROM blog_posts ORDER BY id;",
+  "rows": [
+    {
+      "id": "1",
+      "slug": "ki-im-unternehmen-einfuehren",
+      "title": "KI im Unternehmen erfolgreich einführen: Ein Leitfaden für Entscheider",
+      "category": "Strategie"
+    },
+    {
+      "id": "2",
+      "slug": "dsgvo-checkliste-llm",
+      "title": "Die ultimative DSGVO-Checkliste für LLM-Plattformen",
+      "category": "Compliance"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tslug\ttitle\tcategory\n1\tki-im-unternehmen-einfuehren\tKI im Unternehmen erfolgreich einführen: Ein Leitfaden für Entscheider\tStrategie\n2\tdsgvo-checkliste-llm\tDie ultimative DSGVO-Checkliste für LLM-Plattformen\tCompliance\n",
+  "stderr": "",
+  "execution_time_ms": 342
+}

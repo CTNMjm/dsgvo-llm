@@ -169,7 +169,7 @@ export default function Home() {
       <header className="relative bg-[#0F172A] text-white overflow-hidden">
         <div className="absolute inset-0 opacity-20">
           <img 
-            src="/images/hero-background.jpg" 
+            src="/images/hero-background.webp" 
             alt="Abstract Swiss Style Background" 
             className="w-full h-full object-cover"
           />

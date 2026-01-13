@@ -33,7 +33,7 @@ interface SEOProps {
 
 const SITE_NAME = 'LLM-Plattform Vergleich';
 const DEFAULT_DESCRIPTION = 'Vergleichen Sie DSGVO-konforme KI-Lösungen für Ihr Unternehmen. Finden Sie die beste LLM-Plattform mit unserem umfassenden Vergleich.';
-const DEFAULT_IMAGE = '/og-image.png';
+const DEFAULT_IMAGE = '/og-image.webp';
 const SITE_URL = typeof window !== 'undefined' ? window.location.origin : 'https://llm-vergleich.de';
 
 export function SEO({
@@ -279,28 +279,28 @@ export const SEOPresets = {
     title: 'DSGVO-konforme LLM-Plattformen im Vergleich',
     description: 'Vergleichen Sie die besten DSGVO-konformen KI-Lösungen für Ihr Unternehmen. Filtern Sie nach Preismodell, Funktionen und Compliance-Standards.',
     keywords: 'LLM Plattform, DSGVO konform, KI für Unternehmen, ChatGPT Alternative, Enterprise AI, Datenschutz KI',
-    image: '/og-image.png',
+    image: '/og-image.webp',
     url: '/'
   },
   blog: {
     title: 'Blog - Wissen rund um KI & DSGVO',
     description: 'Aktuelle Artikel, Leitfäden und Best Practices zu DSGVO-konformen KI-Lösungen für Unternehmen.',
     keywords: 'KI Blog, DSGVO Leitfaden, Enterprise AI, LLM Tipps, Datenschutz KI',
-    image: '/og-blog.png',
+    image: '/og-blog.webp',
     url: '/blog'
   },
   compare: {
     title: 'LLM-Plattformen vergleichen',
     description: 'Detaillierter Vergleich aller DSGVO-konformen LLM-Plattformen. Finden Sie die beste Lösung für Ihre Anforderungen.',
     keywords: 'LLM Vergleich, KI Plattform Vergleich, Enterprise AI Vergleich',
-    image: '/og-vergleich.png',
+    image: '/og-vergleich.webp',
     url: '/vergleich'
   },
   apiPreise: {
     title: 'API-Preise - LLM-Modelle im Preisvergleich',
     description: 'Vergleichen Sie die API-Preise aller LLM-Modelle. Filtern Sie nach Sprachen, Funktionen und Anbietern.',
     keywords: 'LLM API Preise, GPT-4 Kosten, Claude Preise, Gemini API, Token Preise',
-    image: '/og-image.png',
+    image: '/og-image.webp',
     url: '/api-preise'
   }
 };

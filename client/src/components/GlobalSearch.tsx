@@ -83,7 +83,11 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
           onFocus={() => setIsOpen(true)}
           className="w-full bg-slate-800/50 border border-slate-700 rounded-lg py-2 pl-9 pr-8 text-sm text-white placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
         />
-        {query && (
+        {isLoading && query.length >= 2 ? (
+          <div className="absolute right-2 top-1/2 -translate-y-1/2">
+            <Loader2 className="h-4 w-4 animate-spin text-orange-500" />
+          </div>
+        ) : query && (
           <button
             onClick={() => {
               setQuery("");
@@ -100,8 +104,12 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
       {isOpen && query.length >= 2 && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-50 max-h-[70vh] overflow-y-auto">
           {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
+            <div className="flex flex-col items-center justify-center py-8 gap-3">
+              <div className="relative">
+                <div className="absolute inset-0 rounded-full bg-orange-500/20 animate-ping" />
+                <Loader2 className="h-8 w-8 animate-spin text-orange-500 relative z-10" />
+              </div>
+              <p className="text-sm text-slate-400 animate-pulse">Suche läuft...</p>
             </div>
           ) : !hasResults ? (
             <div className="py-8 text-center text-slate-400">
