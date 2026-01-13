@@ -1,24 +1,36 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, json } from "drizzle-orm/mysql-core";
+import { integer, pgEnum, pgTable, text, timestamp, varchar, boolean, json, serial } from "drizzle-orm/pg-core";
+
+/**
+ * PostgreSQL Enums
+ */
+export const roleEnum = pgEnum("role", ["user", "admin"]);
+export const pricingModelEnum = pgEnum("pricing_model", ["Hybrid", "Nutzungsbasiert", "Pro User", "Einmalzahlung", "Enterprise"]);
+export const commentStatusEnum = pgEnum("comment_status", ["pending", "approved", "rejected"]);
+export const reviewStatusEnum = pgEnum("review_status", ["pending", "approved", "rejected"]);
+export const interestEnum = pgEnum("interest", ["demo", "quote", "trial", "info"]);
+export const leadStatusEnum = pgEnum("lead_status", ["new", "contacted", "qualified", "converted", "closed"]);
+export const suggestionTypeEnum = pgEnum("suggestion_type", ["new_platform", "correction", "feature_request"]);
+export const suggestionStatusEnum = pgEnum("suggestion_status", ["pending", "reviewed", "implemented", "rejected"]);
 
 /**
  * Core user table backing auth flow.
  * Extend this file with additional tables as your product grows.
  * Columns use camelCase to match both database fields and generated types.
  */
-export const users = mysqlTable("users", {
+export const users = pgTable("users", {
   /**
    * Surrogate primary key. Auto-incremented numeric value managed by the database.
    * Use this for relations between tables.
    */
-  id: int("id").autoincrement().primaryKey(),
+  id: serial("id").primaryKey(),
   /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  role: roleEnum("role").default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
@@ -32,8 +44,8 @@ export type InsertUser = typeof users.$inferInsert;
 /**
  * LLM Platforms - Core comparison data
  */
-export const platforms = mysqlTable("platforms", {
-  id: int("id").autoincrement().primaryKey(),
+export const platforms = pgTable("platforms", {
+  id: serial("id").primaryKey(),
   slug: varchar("slug", { length: 100 }).notNull().unique(),
   name: varchar("name", { length: 200 }).notNull(),
   company: varchar("company", { length: 200 }).notNull(),
@@ -41,7 +53,7 @@ export const platforms = mysqlTable("platforms", {
   url: varchar("url", { length: 500 }),
   
   // Pricing
-  pricingModel: mysqlEnum("pricingModel", ["Hybrid", "Nutzungsbasiert", "Pro User", "Einmalzahlung", "Enterprise"]).notNull(),
+  pricingModel: pricingModelEnum("pricingModel").notNull(),
   basePrice: varchar("basePrice", { length: 200 }),
   tokenBased: boolean("tokenBased").default(false),
   
@@ -71,7 +83,7 @@ export const platforms = mysqlTable("platforms", {
   // Metadata
   isActive: boolean("isActive").default(true),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
 export type Platform = typeof platforms.$inferSelect;
@@ -80,8 +92,8 @@ export type InsertPlatform = typeof platforms.$inferInsert;
 /**
  * Blog Posts
  */
-export const blogPosts = mysqlTable("blog_posts", {
-  id: int("id").autoincrement().primaryKey(),
+export const blogPosts = pgTable("blog_posts", {
+  id: serial("id").primaryKey(),
   slug: varchar("slug", { length: 200 }).notNull().unique(),
   title: varchar("title", { length: 500 }).notNull(),
   excerpt: text("excerpt"),
@@ -98,7 +110,7 @@ export const blogPosts = mysqlTable("blog_posts", {
   isPublished: boolean("isPublished").default(false),
   publishedAt: timestamp("publishedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
 export type BlogPost = typeof blogPosts.$inferSelect;
@@ -107,17 +119,17 @@ export type InsertBlogPost = typeof blogPosts.$inferInsert;
 /**
  * Blog Comments
  */
-export const blogComments = mysqlTable("blog_comments", {
-  id: int("id").autoincrement().primaryKey(),
-  postId: int("postId").notNull(),
+export const blogComments = pgTable("blog_comments", {
+  id: serial("id").primaryKey(),
+  postId: integer("postId").notNull(),
   authorName: varchar("authorName", { length: 200 }).notNull(),
   authorEmail: varchar("authorEmail", { length: 320 }),
   content: text("content").notNull(),
   
   // Moderation
-  status: mysqlEnum("status", ["pending", "approved", "rejected"]).default("pending").notNull(),
+  status: commentStatusEnum("status").default("pending").notNull(),
   moderatedAt: timestamp("moderatedAt"),
-  moderatedBy: int("moderatedBy"),
+  moderatedBy: integer("moderatedBy"),
   
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
@@ -128,20 +140,20 @@ export type InsertBlogComment = typeof blogComments.$inferInsert;
 /**
  * Platform Reviews (Community Ratings)
  */
-export const platformReviews = mysqlTable("platform_reviews", {
-  id: int("id").autoincrement().primaryKey(),
-  platformId: int("platformId").notNull(),
+export const platformReviews = pgTable("platform_reviews", {
+  id: serial("id").primaryKey(),
+  platformId: integer("platformId").notNull(),
   authorName: varchar("authorName", { length: 200 }).notNull(),
   authorEmail: varchar("authorEmail", { length: 320 }),
-  rating: int("rating").notNull(), // 1-5
+  rating: integer("rating").notNull(), // 1-5
   title: varchar("title", { length: 300 }),
   content: text("content"),
   isVerified: boolean("isVerified").default(false),
   
   // Moderation
-  status: mysqlEnum("status", ["pending", "approved", "rejected"]).default("pending").notNull(),
+  status: reviewStatusEnum("status").default("pending").notNull(),
   moderatedAt: timestamp("moderatedAt"),
-  moderatedBy: int("moderatedBy"),
+  moderatedBy: integer("moderatedBy"),
   
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
@@ -152,9 +164,9 @@ export type InsertPlatformReview = typeof platformReviews.$inferInsert;
 /**
  * Leads (Contact Requests)
  */
-export const leads = mysqlTable("leads", {
-  id: int("id").autoincrement().primaryKey(),
-  platformId: int("platformId"),
+export const leads = pgTable("leads", {
+  id: serial("id").primaryKey(),
+  platformId: integer("platformId"),
   platformName: varchar("platformName", { length: 200 }),
   
   // Contact Info
@@ -165,15 +177,15 @@ export const leads = mysqlTable("leads", {
   
   // Request Details
   employeeCount: varchar("employeeCount", { length: 50 }),
-  interest: mysqlEnum("interest", ["demo", "quote", "trial", "info"]).default("info"),
+  interest: interestEnum("interest").default("info"),
   message: text("message"),
   
   // Status
-  status: mysqlEnum("status", ["new", "contacted", "qualified", "converted", "closed"]).default("new").notNull(),
+  status: leadStatusEnum("status").default("new").notNull(),
   notes: text("notes"),
   
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
 export type Lead = typeof leads.$inferSelect;
@@ -182,8 +194,8 @@ export type InsertLead = typeof leads.$inferInsert;
 /**
  * Newsletter Subscribers
  */
-export const newsletterSubscribers = mysqlTable("newsletter_subscribers", {
-  id: int("id").autoincrement().primaryKey(),
+export const newsletterSubscribers = pgTable("newsletter_subscribers", {
+  id: serial("id").primaryKey(),
   email: varchar("email", { length: 320 }).notNull().unique(),
   name: varchar("name", { length: 200 }),
   
@@ -198,9 +210,9 @@ export type InsertNewsletterSubscriber = typeof newsletterSubscribers.$inferInse
 /**
  * Platform Suggestions (User Feedback)
  */
-export const platformSuggestions = mysqlTable("platform_suggestions", {
-  id: int("id").autoincrement().primaryKey(),
-  type: mysqlEnum("type", ["new_platform", "correction", "feature_request"]).notNull(),
+export const platformSuggestions = pgTable("platform_suggestions", {
+  id: serial("id").primaryKey(),
+  type: suggestionTypeEnum("type").notNull(),
   
   // Suggestion Details
   platformName: varchar("platformName", { length: 200 }),
@@ -212,11 +224,11 @@ export const platformSuggestions = mysqlTable("platform_suggestions", {
   submitterEmail: varchar("submitterEmail", { length: 320 }),
   
   // Status
-  status: mysqlEnum("status", ["pending", "reviewed", "implemented", "rejected"]).default("pending").notNull(),
+  status: suggestionStatusEnum("status").default("pending").notNull(),
   adminNotes: text("adminNotes"),
   
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
 export type PlatformSuggestion = typeof platformSuggestions.$inferSelect;
@@ -226,8 +238,8 @@ export type InsertPlatformSuggestion = typeof platformSuggestions.$inferInsert;
  * Members - Public user accounts for comments/suggestions
  * Separate from admin users table
  */
-export const members = mysqlTable("members", {
-  id: int("id").autoincrement().primaryKey(),
+export const members = pgTable("members", {
+  id: serial("id").primaryKey(),
   email: varchar("email", { length: 320 }).notNull().unique(),
   name: varchar("name", { length: 200 }),
   
@@ -240,7 +252,7 @@ export const members = mysqlTable("members", {
   isActive: boolean("isActive").default(true),
   
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   lastLoginAt: timestamp("lastLoginAt"),
 });
 
@@ -250,8 +262,8 @@ export type InsertMember = typeof members.$inferInsert;
 /**
  * Magic Link Login Codes
  */
-export const loginCodes = mysqlTable("login_codes", {
-  id: int("id").autoincrement().primaryKey(),
+export const loginCodes = pgTable("login_codes", {
+  id: serial("id").primaryKey(),
   email: varchar("email", { length: 320 }).notNull(),
   code: varchar("code", { length: 6 }).notNull(), // 6-digit code
   
@@ -260,7 +272,7 @@ export const loginCodes = mysqlTable("login_codes", {
   usedAt: timestamp("usedAt"),
   
   // Security
-  attempts: int("attempts").default(0),
+  attempts: integer("attempts").default(0),
   ipAddress: varchar("ipAddress", { length: 45 }),
   
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -272,9 +284,9 @@ export type InsertLoginCode = typeof loginCodes.$inferInsert;
 /**
  * Member Sessions
  */
-export const memberSessions = mysqlTable("member_sessions", {
-  id: int("id").autoincrement().primaryKey(),
-  memberId: int("memberId").notNull(),
+export const memberSessions = pgTable("member_sessions", {
+  id: serial("id").primaryKey(),
+  memberId: integer("memberId").notNull(),
   token: varchar("token", { length: 64 }).notNull().unique(),
   
   expiresAt: timestamp("expiresAt").notNull(),
@@ -292,9 +304,9 @@ export type InsertMemberSession = typeof memberSessions.$inferInsert;
 /**
  * API Pricing - Model prices per platform
  */
-export const apiPricing = mysqlTable("api_pricing", {
-  id: int("id").autoincrement().primaryKey(),
-  platformId: int("platformId").notNull(),
+export const apiPricing = pgTable("api_pricing", {
+  id: serial("id").primaryKey(),
+  platformId: integer("platformId").notNull(),
   
   // Model info
   provider: varchar("provider", { length: 100 }).notNull(), // OpenAI, Anthropic, Google, etc.
@@ -316,7 +328,7 @@ export const apiPricing = mysqlTable("api_pricing", {
   capabilities: json("capabilities").$type<string[]>(), // ["chat", "code", "embedding", "vision", "audio"]
   
   // Context window size
-  contextWindow: int("contextWindow"), // in tokens
+  contextWindow: integer("contextWindow"), // in tokens
   
   // Metadata
   notes: text("notes"),

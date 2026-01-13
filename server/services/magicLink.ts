@@ -151,16 +151,12 @@ export async function verifyLoginCode(
   
   if (!member) {
     // Create new member
-    const [result] = await db.insert(members).values({
+    const result = await db.insert(members).values({
       email: normalizedEmail,
       isVerified: true,
-    });
+    }).returning();
     
-    [member] = await db
-      .select()
-      .from(members)
-      .where(eq(members.id, result.insertId))
-      .limit(1);
+    member = result[0];
   } else {
     // Update last login
     await db
