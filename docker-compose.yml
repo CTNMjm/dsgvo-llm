@@ -1,0 +1,74 @@
+# LLM-Plattform Vergleich - Docker Compose Konfiguration
+# Für lokale Entwicklung mit PostgreSQL
+
+services:
+  # PostgreSQL Datenbank
+  db:
+    image: postgres:16-alpine
+    container_name: llm-platform-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-llm_platform}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Anwendung (Development)
+  app:
+    build:
+      context: .
+      target: development
+    container_name: llm-platform-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-llm_platform}
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      # SMTP Konfiguration (optional)
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      # Vite Umgebungsvariablen
+      VITE_APP_TITLE: ${VITE_APP_TITLE:-LLM-Plattform Vergleich}
+    volumes:
+      # Source Code mounten für Hot-Reload
+      - .:/app
+      # Node modules nicht überschreiben
+      - /app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+    command: pnpm dev
+
+  # pgAdmin (optional, für Datenbank-Management)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: llm-platform-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - db
+    profiles:
+      - tools
+
+volumes:
+  postgres_data:
+  pgadmin_data:
