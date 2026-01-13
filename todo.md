@@ -137,3 +137,12 @@
 - [x] SMTP-Secrets vorbereitet (Host, Port, User, Pass, Admin-Email) - später einzugeben
 - [x] E-Mail-Service bereits implementiert (server/services/email.ts)
 - [x] Magic-Link-Login Code bereit (server/services/magicLink.ts)
+
+
+## Dokumentation (Phase 52+)
+
+### Projektdokumentation
+- [x] README.md mit Projektübersicht
+- [x] API-Dokumentation
+- [x] Architektur-Dokumentation
+- [x] Entwickler-Leitfaden
