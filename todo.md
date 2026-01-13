@@ -303,3 +303,10 @@
 - [x] Magic-Link als einziges Login-System
 - [x] Server-Start ohne OAuth-Variablen ermöglichen
 - [x] env-template.txt aktualisieren
+
+
+## Frontend Self-Hosted Fix (Phase 75)
+
+- [x] VITE_OAUTH_PORTAL_URL Verwendung im Frontend finden
+- [x] Frontend-Code anpassen für Self-Hosted (ohne OAuth)
+- [x] Build-Konfiguration für Self-Hosted anpassen

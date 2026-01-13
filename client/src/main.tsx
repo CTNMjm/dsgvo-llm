@@ -6,7 +6,7 @@ import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import { HelmetProvider } from "react-helmet-async";
 import App from "./App";
-import { getLoginUrl } from "./const";
+import { getLoginUrl, isOAuthEnabled } from "./const";
 import "./index.css";
 
 const queryClient = new QueryClient();
@@ -19,7 +19,13 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
 
   if (!isUnauthorized) return;
 
-  window.location.href = getLoginUrl();
+  // Only redirect to OAuth if enabled, otherwise let the app handle it
+  // (e.g., show Magic Link login dialog)
+  const loginUrl = getLoginUrl();
+  if (loginUrl && isOAuthEnabled()) {
+    window.location.href = loginUrl;
+  }
+  // In Self-Hosted mode, the app will show the Magic Link login dialog
 };
 
 queryClient.getQueryCache().subscribe(event => {

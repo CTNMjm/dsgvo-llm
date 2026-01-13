@@ -1,4 +1,4 @@
-import { getLoginUrl } from "@/const";
+import { getLoginUrl, isOAuthEnabled } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { TRPCClientError } from "@trpc/client";
 import { useCallback, useEffect, useMemo } from "react";
@@ -9,7 +9,9 @@ type UseAuthOptions = {
 };
 
 export function useAuth(options?: UseAuthOptions) {
-  const { redirectOnUnauthenticated = false, redirectPath = getLoginUrl() } =
+  // In Self-Hosted mode, don't redirect to OAuth - let the app show Magic Link login
+  const defaultRedirectPath = isOAuthEnabled() ? getLoginUrl() : null;
+  const { redirectOnUnauthenticated = false, redirectPath = defaultRedirectPath } =
     options ?? {};
   const utils = trpc.useUtils();
 
@@ -65,9 +67,13 @@ export function useAuth(options?: UseAuthOptions) {
     if (meQuery.isLoading || logoutMutation.isPending) return;
     if (state.user) return;
     if (typeof window === "undefined") return;
+    
+    // In Self-Hosted mode (no OAuth), don't redirect - let the app handle login
+    if (!redirectPath) return;
+    
     if (window.location.pathname === redirectPath) return;
 
-    window.location.href = redirectPath
+    window.location.href = redirectPath;
   }, [
     redirectOnUnauthenticated,
     redirectPath,

@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
+import { getLoginUrl, isOAuthEnabled } from "@/const";
+import { MemberLogin } from "@/components/MemberLogin";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -585,9 +586,22 @@ export default function Admin() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button className="w-full" onClick={() => window.location.href = getLoginUrl()}>
-              Anmelden
-            </Button>
+            {isOAuthEnabled() ? (
+              <Button className="w-full" onClick={() => {
+                const loginUrl = getLoginUrl();
+                if (loginUrl) window.location.href = loginUrl;
+              }}>
+                Anmelden
+              </Button>
+            ) : (
+              <MemberLogin 
+                trigger={
+                  <Button className="w-full">
+                    Mit E-Mail anmelden
+                  </Button>
+                }
+              />
+            )}
           </CardContent>
         </Card>
       </div>
