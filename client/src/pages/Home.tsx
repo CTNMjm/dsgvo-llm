@@ -450,6 +450,7 @@ export default function Home() {
             <Link href="/datenschutz" className="text-slate-600 hover:text-orange-500 transition-colors">Datenschutz</Link>
             <Link href="/impressum" className="text-slate-600 hover:text-orange-500 transition-colors">Impressum</Link>
             <Link href="/admin" className="text-slate-600 hover:text-orange-500 transition-colors">Admin</Link>
+            <button onClick={() => { localStorage.removeItem('cookie-consent'); window.location.reload(); }} className="text-slate-600 hover:text-orange-500 transition-colors">Cookie-Einstellungen</button>
           </div>
           <p className="mb-4">
             Diese Übersicht dient nur zu Informationszwecken. Alle Angaben ohne Gewähr. <br/>

@@ -1,38 +1,55 @@
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/Home";
-import PlatformDetail from "./pages/PlatformDetail";
-import Admin from "./pages/Admin";
-import Blog from "./pages/Blog";
-import BlogPost from "./pages/BlogPost";
-import Datenschutz from "./pages/Datenschutz";
-import Impressum from "./pages/Impressum";
-import Profil from "./pages/Profil";
-import ApiPricing from "./pages/ApiPricing";
-import Vergleich from "./pages/Vergleich";
+import { CookieConsent } from "./components/CookieConsent";
+
+// Lazy-loaded pages für Code-Splitting
+const Home = lazy(() => import("./pages/Home"));
+const PlatformDetail = lazy(() => import("./pages/PlatformDetail"));
+const Admin = lazy(() => import("./pages/Admin"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
+const Datenschutz = lazy(() => import("./pages/Datenschutz"));
+const Impressum = lazy(() => import("./pages/Impressum"));
+const Profil = lazy(() => import("./pages/Profil"));
+const ApiPricing = lazy(() => import("./pages/ApiPricing"));
+const Vergleich = lazy(() => import("./pages/Vergleich"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
+// Loading-Komponente für Suspense
+function PageLoader() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="text-center">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-orange-500 border-t-transparent mb-4"></div>
+        <p className="text-slate-500 text-sm">Laden...</p>
+      </div>
+    </div>
+  );
+}
 
 function Router() {
-  // make sure to consider if you need authentication for certain routes
   return (
-    <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/platform/:id"} component={PlatformDetail} />
-      <Route path={"/admin"} component={Admin} />
-      <Route path={"/blog"} component={Blog} />
-      <Route path={"/blog/:id"} component={BlogPost} />
-      <Route path={"/datenschutz"} component={Datenschutz} />
-      <Route path={"/impressum"} component={Impressum} />
-      <Route path={"/profil"} component={Profil} />
-      <Route path={"/api-preise"} component={ApiPricing} />
-      <Route path={"/vergleich"} component={Vergleich} />
-      <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
-      <Route component={NotFound} />
-    </Switch>
+    <Suspense fallback={<PageLoader />}>
+      <Switch>
+        <Route path={"/"} component={Home} />
+        <Route path={"/platform/:id"} component={PlatformDetail} />
+        <Route path={"/admin"} component={Admin} />
+        <Route path={"/blog"} component={Blog} />
+        <Route path={"/blog/:id"} component={BlogPost} />
+        <Route path={"/datenschutz"} component={Datenschutz} />
+        <Route path={"/impressum"} component={Impressum} />
+        <Route path={"/profil"} component={Profil} />
+        <Route path={"/api-preise"} component={ApiPricing} />
+        <Route path={"/vergleich"} component={Vergleich} />
+        <Route path={"/404"} component={NotFound} />
+        {/* Final fallback route */}
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 
@@ -51,6 +68,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
+          <CookieConsent />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
