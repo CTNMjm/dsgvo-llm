@@ -60,6 +60,8 @@ export const platforms = mysqlTable("platforms", {
   // Extended Info
   description: text("description"),
   screenshotUrl: varchar("screenshotUrl", { length: 500 }),
+  logoUrl: varchar("logoUrl", { length: 500 }),
+  websiteUrl: varchar("websiteUrl", { length: 500 }),
   
   // Company Details
   employees: varchar("employees", { length: 100 }),

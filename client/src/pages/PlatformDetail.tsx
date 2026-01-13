@@ -81,7 +81,7 @@ export default function PlatformDetail() {
           </Link>
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-bold text-slate-900 hidden sm:block">{platform.name}</h1>
-            <a href={platform.url || '#'} target="_blank" rel="noopener noreferrer">
+            <a href={platform.websiteUrl || platform.url || '#'} target="_blank" rel="noopener noreferrer">
               <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white">
                 Website besuchen <ExternalLink className="ml-2 h-4 w-4" />
               </Button>
@@ -96,9 +96,17 @@ export default function PlatformDetail() {
           <div className="flex flex-col md:flex-row gap-8 items-start">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-4">
-                <div className="h-16 w-16 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-2xl font-bold shadow-lg">
-                  {platform.name.substring(0, 2)}
-                </div>
+                {platform.logoUrl ? (
+                  <img 
+                    src={platform.logoUrl} 
+                    alt={`${platform.name} Logo`} 
+                    className="h-16 w-16 rounded-2xl bg-white border border-slate-200 p-2 object-contain shadow-lg" 
+                  />
+                ) : (
+                  <div className="h-16 w-16 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-2xl font-bold shadow-lg">
+                    {platform.name.substring(0, 2)}
+                  </div>
+                )}
                 <div>
                   <h1 className="text-3xl md:text-4xl font-bold text-slate-900">{platform.name}</h1>
                   <div className="flex items-center text-slate-500 mt-1">
@@ -128,7 +136,7 @@ export default function PlatformDetail() {
               <div className="mb-6 space-y-3">
                 <LeadForm platformName={platform.name} platformId={platform.id} />
                 <Button variant="outline" className="w-full border-slate-200 hover:bg-slate-100 text-slate-700" asChild>
-                  <a href={platform.url || '#'} target="_blank" rel="noopener noreferrer">
+                  <a href={platform.websiteUrl || platform.url || '#'} target="_blank" rel="noopener noreferrer">
                     Zur Website <ExternalLink className="ml-2 h-4 w-4" />
                   </a>
                 </Button>

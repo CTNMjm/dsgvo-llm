@@ -61,13 +61,21 @@ export const PlatformCard = ({ platform, onCompare, isSelected, onAddToCompare, 
       
       <div className="p-6 flex-1">
         <div className="flex items-start justify-between mb-4">
-          <div>
-            <h3 className="text-xl font-bold text-slate-900">{platform.name}</h3>
-            <p className="text-sm text-slate-500 flex items-center mt-1">
-              <Building2 className="h-3 w-3 mr-1" /> {platform.company}
-            </p>
+          <div className="flex items-center gap-3">
+            {platform.logoUrl && (
+              <img 
+                src={platform.logoUrl} 
+                alt={`${platform.name} Logo`} 
+                className="h-12 w-12 object-contain rounded-lg bg-white border border-slate-100 p-1" 
+              />
+            )}
+            <div>
+              <h3 className="text-xl font-bold text-slate-900">{platform.name}</h3>
+              <p className="text-sm text-slate-500 flex items-center mt-1">
+                <Building2 className="h-3 w-3 mr-1" /> {platform.company}
+              </p>
+            </div>
           </div>
-          {platform.logo && <img src={platform.logo} alt={platform.name} className="h-8 w-8 object-contain" />}
         </div>
 
         <div className="space-y-3 mb-6">

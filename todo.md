@@ -146,3 +146,13 @@
 - [x] API-Dokumentation
 - [x] Architektur-Dokumentation
 - [x] Entwickler-Leitfaden
+
+
+## Anbieter-Logos und Links (Phase 53+)
+
+### Logos und Homepage-Links
+- [x] Datenbank-Schema um logoUrl und websiteUrl erweitern
+- [x] Logos für alle 12 Plattformen beschaffen
+- [x] Plattform-Daten mit Logos und Links aktualisieren
+- [x] Logo-Anzeige in PlatformCard einbauen
+- [x] Homepage-Link auf Detailseiten hinzufügen
