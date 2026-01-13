@@ -496,6 +496,25 @@ export const appRouter = router({
       return db.getAllApiPricing();
     }),
     
+    // Filter API pricing by languages, capabilities, etc.
+    filter: publicProcedure
+      .input(z.object({
+        languages: z.array(z.string()).optional(),
+        capabilities: z.array(z.string()).optional(),
+        providers: z.array(z.string()).optional(),
+        minContextWindow: z.number().optional(),
+        maxInputPrice: z.number().optional(),
+        maxOutputPrice: z.number().optional()
+      }))
+      .query(async ({ input }) => {
+        return db.getFilteredApiPricing(input);
+      }),
+    
+    // Get list of all providers for filter dropdown
+    providers: publicProcedure.query(async () => {
+      return db.getApiPricingProviders();
+    }),
+    
     create: adminProcedure
       .input(z.object({
         platformId: z.number(),

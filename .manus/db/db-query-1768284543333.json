@@ -1,0 +1,45 @@
+{
+  "query": "SELECT id, modelName, supportedLanguages, capabilities, contextWindow FROM api_pricing LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3n6qTNezUaiqXwT.dab73406a049 --database 83VRahLS37UxtzQV8DA4uM --execute SELECT id, modelName, supportedLanguages, capabilities, contextWindow FROM api_pricing LIMIT 5;",
+  "rows": [
+    {
+      "id": "1",
+      "modelName": "GPT-4.1",
+      "supportedLanguages": "[\"de\", \"en\", \"fr\", \"es\", \"it\", \"pt\", \"nl\", \"pl\", \"ru\", \"zh\", \"ja\", \"ko\"]",
+      "capabilities": "[\"chat\", \"code\"]",
+      "contextWindow": "128000"
+    },
+    {
+      "id": "2",
+      "modelName": "GPT-4.1 mini",
+      "supportedLanguages": "[\"de\", \"en\", \"fr\", \"es\", \"it\", \"pt\", \"nl\", \"pl\", \"ru\", \"zh\", \"ja\", \"ko\"]",
+      "capabilities": "[\"chat\", \"code\"]",
+      "contextWindow": "128000"
+    },
+    {
+      "id": "3",
+      "modelName": "GPT-4o",
+      "supportedLanguages": "[\"de\", \"en\", \"fr\", \"es\", \"it\", \"pt\", \"nl\", \"pl\", \"ru\", \"zh\", \"ja\", \"ko\"]",
+      "capabilities": "[\"chat\", \"code\"]",
+      "contextWindow": "128000"
+    },
+    {
+      "id": "4",
+      "modelName": "GPT-4o Mini",
+      "supportedLanguages": "[\"de\", \"en\", \"fr\", \"es\", \"it\", \"pt\", \"nl\", \"pl\", \"ru\", \"zh\", \"ja\", \"ko\"]",
+      "capabilities": "[\"chat\", \"code\"]",
+      "contextWindow": "128000"
+    },
+    {
+      "id": "5",
+      "modelName": "o3",
+      "supportedLanguages": "[\"de\", \"en\", \"fr\", \"es\", \"it\", \"pt\", \"nl\", \"pl\", \"ru\", \"zh\", \"ja\", \"ko\"]",
+      "capabilities": "[\"chat\", \"reasoning\"]",
+      "contextWindow": "32000"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tmodelName\tsupportedLanguages\tcapabilities\tcontextWindow\n1\tGPT-4.1\t[\"de\", \"en\", \"fr\", \"es\", \"it\", \"pt\", \"nl\", \"pl\", \"ru\", \"zh\", \"ja\", \"ko\"]\t[\"chat\", \"code\"]\t128000\n2\tGPT-4.1 mini\t[\"de\", \"en\", \"fr\", \"es\", \"it\", \"pt\", \"nl\", \"pl\", \"ru\", \"zh\", \"ja\", \"ko\"]\t[\"chat\", \"code\"]\t128000\n3\tGPT-4o\t[\"de\", \"en\", \"fr\", \"es\", \"it\", \"pt\", \"nl\", \"pl\", \"ru\", \"zh\", \"ja\", \"ko\"]\t[\"chat\", \"code\"]\t128000\n4\tGPT-4o Mini\t[\"de\", \"en\", \"fr\", \"es\", \"it\", \"pt\", \"nl\", \"pl\", \"ru\", \"zh\", \"ja\", \"ko\"]\t[\"chat\", \"code\"]\t128000\n5\to3\t[\"de\", \"en\", \"fr\", \"es\", \"it\", \"pt\", \"nl\", \"pl\", \"ru\", \"zh\", \"ja\", \"ko\"]\t[\"chat\", \"reasoning\"]\t32000\n",
+  "stderr": "",
+  "execution_time_ms": 52
+}

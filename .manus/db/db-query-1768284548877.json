@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE api_pricing SET \n  supportedLanguages = '[\"de\", \"en\", \"fr\", \"es\", \"it\", \"pt\", \"nl\", \"pl\", \"ru\", \"zh\", \"ja\", \"ko\"]',\n  capabilities = CASE \n    WHEN modelName LIKE '%Embed%' THEN '[\"embedding\"]'\n    WHEN modelName LIKE '%Codestral%' OR modelName LIKE '%Code%' THEN '[\"chat\", \"code\"]'\n    WHEN modelName LIKE '%Vision%' THEN '[\"chat\", \"vision\"]'\n    WHEN modelName LIKE '%o3%' OR modelName LIKE '%o1%' THEN '[\"chat\", \"reasoning\"]'\n    ELSE '[\"chat\", \"code\"]'\n  END,\n  contextWindow = CASE \n    WHEN modelName LIKE '%GPT-4%' OR modelName LIKE '%Claude%' THEN 128000\n    WHEN modelName LIKE '%Gemini%' THEN 1000000\n    WHEN modelName LIKE '%Mistral%' THEN 32000\n    WHEN modelName LIKE '%Llama%' THEN 128000\n    ELSE 32000\n  END;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3n6qTNezUaiqXwT.dab73406a049 --database 83VRahLS37UxtzQV8DA4uM --execute UPDATE api_pricing SET \n  supportedLanguages = '[\"de\", \"en\", \"fr\", \"es\", \"it\", \"pt\", \"nl\", \"pl\", \"ru\", \"zh\", \"ja\", \"ko\"]',\n  capabilities = CASE \n    WHEN modelName LIKE '%Embed%' THEN '[\"embedding\"]'\n    WHEN modelName LIKE '%Codestral%' OR modelName LIKE '%Code%' THEN '[\"chat\", \"code\"]'\n    WHEN modelName LIKE '%Vision%' THEN '[\"chat\", \"vision\"]'\n    WHEN modelName LIKE '%o3%' OR modelName LIKE '%o1%' THEN '[\"chat\", \"reasoning\"]'\n    ELSE '[\"chat\", \"code\"]'\n  END,\n  contextWindow = CASE \n    WHEN modelName LIKE '%GPT-4%' OR modelName LIKE '%Claude%' THEN 128000\n    WHEN modelName LIKE '%Gemini%' THEN 1000000\n    WHEN modelName LIKE '%Mistral%' THEN 32000\n    WHEN modelName LIKE '%Llama%' THEN 128000\n    ELSE 32000\n  END;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 55
+}

@@ -410,6 +410,85 @@ export async function getAllApiPricing(): Promise<ApiPricing[]> {
     .orderBy(apiPricing.provider, apiPricing.modelName);
 }
 
+export interface ApiPricingFilter {
+  languages?: string[];
+  capabilities?: string[];
+  providers?: string[];
+  minContextWindow?: number;
+  maxInputPrice?: number;
+  maxOutputPrice?: number;
+}
+
+export async function getFilteredApiPricing(filter: ApiPricingFilter): Promise<ApiPricing[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  // Get all pricing first, then filter in memory (JSON columns can't be filtered efficiently in SQL)
+  const allPricing = await db.select().from(apiPricing)
+    .where(eq(apiPricing.isAvailable, true))
+    .orderBy(apiPricing.provider, apiPricing.modelName);
+  
+  return allPricing.filter(p => {
+    // Filter by languages
+    if (filter.languages && filter.languages.length > 0) {
+      const langs = p.supportedLanguages as string[] | null;
+      if (!langs || !filter.languages.some(l => langs.includes(l))) {
+        return false;
+      }
+    }
+    
+    // Filter by capabilities
+    if (filter.capabilities && filter.capabilities.length > 0) {
+      const caps = p.capabilities as string[] | null;
+      if (!caps || !filter.capabilities.some(c => caps.includes(c))) {
+        return false;
+      }
+    }
+    
+    // Filter by providers
+    if (filter.providers && filter.providers.length > 0) {
+      if (!filter.providers.includes(p.provider)) {
+        return false;
+      }
+    }
+    
+    // Filter by context window
+    if (filter.minContextWindow && (!p.contextWindow || p.contextWindow < filter.minContextWindow)) {
+      return false;
+    }
+    
+    // Filter by max input price
+    if (filter.maxInputPrice) {
+      const inputPrice = parseFloat(p.inputPricePerMillion);
+      if (inputPrice > filter.maxInputPrice) {
+        return false;
+      }
+    }
+    
+    // Filter by max output price
+    if (filter.maxOutputPrice) {
+      const outputPrice = parseFloat(p.outputPricePerMillion);
+      if (outputPrice > filter.maxOutputPrice) {
+        return false;
+      }
+    }
+    
+    return true;
+  });
+}
+
+export async function getApiPricingProviders(): Promise<string[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const result = await db.selectDistinct({ provider: apiPricing.provider })
+    .from(apiPricing)
+    .where(eq(apiPricing.isAvailable, true))
+    .orderBy(apiPricing.provider);
+  
+  return result.map(r => r.provider);
+}
+
 export async function createApiPricing(pricing: InsertApiPricing): Promise<void> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

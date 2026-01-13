@@ -150,6 +150,12 @@ export default function Home() {
                   <Info className="mr-2 h-4 w-4" />
                   Stand: Januar 2026
                 </div>
+                <Link href="/api-preise" className="inline-flex items-center rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 text-sm font-medium text-green-400 backdrop-blur-sm hover:bg-green-500/20 transition-colors">
+                  API-Preise
+                </Link>
+                <Link href="/vergleich" className="inline-flex items-center rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-sm font-medium text-blue-400 backdrop-blur-sm hover:bg-blue-500/20 transition-colors">
+                  Plattformen vergleichen
+                </Link>
                 <FeedbackForm />
               </div>
               <div className="bg-white/10 backdrop-blur-md rounded-lg px-3 py-2 border border-white/10">

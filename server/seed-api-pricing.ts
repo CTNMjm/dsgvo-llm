@@ -17,6 +17,9 @@ interface PricingData {
   outputPricePerMillion: string;
   regions?: string[];
   notes?: string;
+  supportedLanguages?: string[];
+  capabilities?: string[];
+  contextWindow?: number;
 }
 
 // Preise pro Plattform (basierend auf öffentlichen Daten)

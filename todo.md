@@ -102,3 +102,20 @@
 ### E-Mail-Benachrichtigungen
 - [x] E-Mail bei neuen Kommentaren an Admin senden (bereits implementiert)
 - [x] E-Mail bei neuen Vorschlägen an Admin senden (bereits implementiert)
+
+## Neue Features (Phase 50+)
+
+### API-Anbieter Filter
+- [x] Filter nach unterstützten Sprachen (Deutsch, Englisch, etc.)
+- [x] Filter nach spezifischen Funktionen (Code, Chat, Embedding)
+- [x] Filter-UI in API-Preise Übersicht integrieren (/api-preise)
+
+### Bewertungssystem für API-Anbieter
+- [x] Bewertungs-Schema für API-Anbieter erweitern (Firma, Anwendungsfall, Dauer, Team-Größe)
+- [x] Erfahrungsberichte-Formular erstellen (Vorteile/Nachteile)
+- [x] Bewertungsanzeige auf Plattform-Detailseiten
+
+#### Vergleichsfunktion
+- [x] Auswahl von bis zu 3 API-Anbietern
+- [x] Vergleichstabelle mit Preisen und Eckdaten
+- [x] Nebeneinander-Ansicht der Plattformen (/vergleich) Anbieter

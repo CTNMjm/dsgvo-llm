@@ -307,6 +307,15 @@ export const apiPricing = mysqlTable("api_pricing", {
   regions: json("regions").$type<string[]>(), // ["EU", "US", "Global"]
   isAvailable: boolean("isAvailable").default(true),
   
+  // Supported languages (for filtering)
+  supportedLanguages: json("supportedLanguages").$type<string[]>(), // ["de", "en", "fr", "es", etc.]
+  
+  // Model capabilities/functions (for filtering)
+  capabilities: json("capabilities").$type<string[]>(), // ["chat", "code", "embedding", "vision", "audio"]
+  
+  // Context window size
+  contextWindow: int("contextWindow"), // in tokens
+  
   // Metadata
   notes: text("notes"),
   lastUpdated: timestamp("lastUpdated").defaultNow().notNull(),

@@ -12,6 +12,8 @@ import BlogPost from "./pages/BlogPost";
 import Datenschutz from "./pages/Datenschutz";
 import Impressum from "./pages/Impressum";
 import Profil from "./pages/Profil";
+import ApiPricing from "./pages/ApiPricing";
+import Vergleich from "./pages/Vergleich";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -25,6 +27,8 @@ function Router() {
       <Route path={"/datenschutz"} component={Datenschutz} />
       <Route path={"/impressum"} component={Impressum} />
       <Route path={"/profil"} component={Profil} />
+      <Route path={"/api-preise"} component={ApiPricing} />
+      <Route path={"/vergleich"} component={Vergleich} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

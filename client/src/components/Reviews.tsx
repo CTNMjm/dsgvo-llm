@@ -2,13 +2,15 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Star, ThumbsUp, MessageSquare, CheckCircle2, Loader2 } from "lucide-react";
+import { Star, ThumbsUp, MessageSquare, CheckCircle2, Loader2, Building2, Briefcase, Clock, Users } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { useMember } from "@/hooks/useMember";
+import { LoginPrompt } from "@/components/MemberLogin";
 
 interface ReviewsProps {
   platformId: number;
@@ -34,14 +36,22 @@ export function Reviews({ platformId, platformName }: ReviewsProps) {
     authorName: '',
     authorEmail: '',
     title: '',
-    content: ''
+    content: '',
+    companyName: '',
+    useCase: '',
+    usageDuration: '',
+    teamSize: '',
+    pros: '',
+    cons: ''
   });
+  
+  const { member, isAuthenticated } = useMember();
 
   const createReview = trpc.reviews.create.useMutation({
     onSuccess: (data) => {
       toast.success(data.message);
       setIsDialogOpen(false);
-      setFormData({ authorName: '', authorEmail: '', title: '', content: '' });
+      setFormData({ authorName: '', authorEmail: '', title: '', content: '', companyName: '', useCase: '', usageDuration: '', teamSize: '', pros: '', cons: '' });
       setSelectedRating(5);
       utils.reviews.listByPlatform.invalidate({ platformId });
       utils.reviews.getAverageRating.invalidate({ platformId });
@@ -97,17 +107,31 @@ export function Reviews({ platformId, platformName }: ReviewsProps) {
                 Teilen Sie Ihre Erfahrungen mit dieser Plattform. Ihre Bewertung hilft anderen Nutzern.
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmitReview} className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name *</Label>
-                <Input 
-                  id="name" 
-                  required 
-                  placeholder="Max Mustermann" 
-                  value={formData.authorName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, authorName: e.target.value }))}
-                />
+            <form onSubmit={handleSubmitReview} className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
+              {/* Basic Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name *</Label>
+                  <Input 
+                    id="name" 
+                    required 
+                    placeholder="Max Mustermann" 
+                    value={formData.authorName}
+                    onChange={(e) => setFormData(prev => ({ ...prev, authorName: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="company">Firma</Label>
+                  <Input 
+                    id="company" 
+                    placeholder="Ihre Firma" 
+                    value={formData.companyName}
+                    onChange={(e) => setFormData(prev => ({ ...prev, companyName: e.target.value }))}
+                  />
+                </div>
               </div>
+              
+              {/* Rating */}
               <div className="space-y-2">
                 <Label>Bewertung *</Label>
                 <div className="flex gap-1">
@@ -123,27 +147,113 @@ export function Reviews({ platformId, platformName }: ReviewsProps) {
                   ))}
                 </div>
               </div>
+              
+              {/* Usage Context */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="useCase">Anwendungsfall</Label>
+                  <select
+                    id="useCase"
+                    value={formData.useCase}
+                    onChange={(e) => setFormData(prev => ({ ...prev, useCase: e.target.value }))}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  >
+                    <option value="">Bitte wählen...</option>
+                    <option value="content">Content-Erstellung</option>
+                    <option value="code">Code-Entwicklung</option>
+                    <option value="support">Kundensupport</option>
+                    <option value="analysis">Datenanalyse</option>
+                    <option value="translation">Übersetzung</option>
+                    <option value="research">Recherche</option>
+                    <option value="other">Sonstiges</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="duration">Nutzungsdauer</Label>
+                  <select
+                    id="duration"
+                    value={formData.usageDuration}
+                    onChange={(e) => setFormData(prev => ({ ...prev, usageDuration: e.target.value }))}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  >
+                    <option value="">Bitte wählen...</option>
+                    <option value="trial">Testphase</option>
+                    <option value="1-3months">&lt; 3 Monate</option>
+                    <option value="3-6months">3-6 Monate</option>
+                    <option value="6-12months">6-12 Monate</option>
+                    <option value="1year+">&gt; 1 Jahr</option>
+                  </select>
+                </div>
+              </div>
+              
               <div className="space-y-2">
-                <Label htmlFor="title">Titel (optional)</Label>
+                <Label htmlFor="teamSize">Team-Größe</Label>
+                <select
+                  id="teamSize"
+                  value={formData.teamSize}
+                  onChange={(e) => setFormData(prev => ({ ...prev, teamSize: e.target.value }))}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                >
+                  <option value="">Bitte wählen...</option>
+                  <option value="1">Einzelnutzer</option>
+                  <option value="2-10">2-10 Nutzer</option>
+                  <option value="11-50">11-50 Nutzer</option>
+                  <option value="51-200">51-200 Nutzer</option>
+                  <option value="200+">&gt; 200 Nutzer</option>
+                </select>
+              </div>
+              
+              {/* Title & Content */}
+              <div className="space-y-2">
+                <Label htmlFor="title">Titel</Label>
                 <Input 
                   id="title" 
-                  placeholder="Kurze Zusammenfassung" 
+                  placeholder="Kurze Zusammenfassung Ihrer Erfahrung" 
                   value={formData.title}
                   onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                 />
               </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="pros" className="flex items-center gap-1 text-green-600">
+                    <ThumbsUp className="h-3 w-3" /> Vorteile
+                  </Label>
+                  <Textarea 
+                    id="pros" 
+                    placeholder="Was gefällt Ihnen?" 
+                    className="min-h-[80px]" 
+                    value={formData.pros}
+                    onChange={(e) => setFormData(prev => ({ ...prev, pros: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="cons" className="flex items-center gap-1 text-red-600">
+                    <ThumbsUp className="h-3 w-3 rotate-180" /> Nachteile
+                  </Label>
+                  <Textarea 
+                    id="cons" 
+                    placeholder="Was könnte besser sein?" 
+                    className="min-h-[80px]" 
+                    value={formData.cons}
+                    onChange={(e) => setFormData(prev => ({ ...prev, cons: e.target.value }))}
+                  />
+                </div>
+              </div>
+              
               <div className="space-y-2">
-                <Label htmlFor="content">Ihre Erfahrung (optional)</Label>
+                <Label htmlFor="content">Detaillierte Erfahrung</Label>
                 <Textarea 
                   id="content" 
-                  placeholder="Was gefällt Ihnen? Was könnte besser sein?" 
+                  placeholder="Beschreiben Sie Ihre Erfahrungen ausführlicher..." 
                   className="min-h-[100px]" 
                   value={formData.content}
                   onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
                 />
               </div>
+              
               <div className="space-y-2">
-                <Label htmlFor="email">E-Mail (optional, zur Verifizierung)</Label>
+                <Label htmlFor="email">E-Mail (zur Verifizierung)</Label>
                 <Input 
                   id="email" 
                   type="email" 
@@ -151,8 +261,9 @@ export function Reviews({ platformId, platformName }: ReviewsProps) {
                   value={formData.authorEmail}
                   onChange={(e) => setFormData(prev => ({ ...prev, authorEmail: e.target.value }))}
                 />
-                <p className="text-xs text-slate-500">Wird nicht veröffentlicht.</p>
+                <p className="text-xs text-slate-500">Wird nicht veröffentlicht. Verifizierte Bewertungen werden hervorgehoben.</p>
               </div>
+              
               <p className="text-xs text-slate-500">
                 Bewertungen werden vor der Veröffentlichung geprüft.
               </p>
