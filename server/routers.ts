@@ -136,6 +136,85 @@ export const appRouter = router({
       .query(async ({ input }) => {
         return db.searchPlatforms(input.query || '', input.pricingModel);
       }),
+    
+    // Admin routes
+    listAll: adminProcedure.query(async () => {
+      return db.getAllPlatformsAdmin();
+    }),
+    
+    create: adminProcedure
+      .input(z.object({
+        slug: z.string().min(1).max(100),
+        name: z.string().min(1).max(200),
+        company: z.string().min(1).max(200),
+        location: z.string().max(200).optional(),
+        url: z.string().url().max(500).optional(),
+        pricingModel: z.enum(["Hybrid", "Nutzungsbasiert", "Pro User", "Einmalzahlung", "Enterprise"]),
+        basePrice: z.string().max(200).optional(),
+        tokenBased: z.boolean().optional(),
+        compliance: z.array(z.string()).optional(),
+        customGPTs: z.boolean().optional(),
+        customGPTDetails: z.string().optional(),
+        features: z.array(z.string()).optional(),
+        pros: z.array(z.string()).optional(),
+        cons: z.array(z.string()).optional(),
+        description: z.string().optional(),
+        screenshotUrl: z.string().url().max(500).optional().nullable(),
+        logoUrl: z.string().url().max(500).optional().nullable(),
+        websiteUrl: z.string().url().max(500).optional().nullable(),
+        employees: z.string().max(100).optional(),
+        customers: z.string().max(100).optional(),
+        developers: z.string().max(100).optional(),
+        isActive: z.boolean().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        return db.createPlatform(input);
+      }),
+    
+    update: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        slug: z.string().min(1).max(100).optional(),
+        name: z.string().min(1).max(200).optional(),
+        company: z.string().min(1).max(200).optional(),
+        location: z.string().max(200).optional().nullable(),
+        url: z.string().url().max(500).optional().nullable(),
+        pricingModel: z.enum(["Hybrid", "Nutzungsbasiert", "Pro User", "Einmalzahlung", "Enterprise"]).optional(),
+        basePrice: z.string().max(200).optional().nullable(),
+        tokenBased: z.boolean().optional(),
+        compliance: z.array(z.string()).optional(),
+        customGPTs: z.boolean().optional(),
+        customGPTDetails: z.string().optional().nullable(),
+        features: z.array(z.string()).optional(),
+        pros: z.array(z.string()).optional(),
+        cons: z.array(z.string()).optional(),
+        description: z.string().optional().nullable(),
+        screenshotUrl: z.string().url().max(500).optional().nullable(),
+        logoUrl: z.string().url().max(500).optional().nullable(),
+        websiteUrl: z.string().url().max(500).optional().nullable(),
+        employees: z.string().max(100).optional().nullable(),
+        customers: z.string().max(100).optional().nullable(),
+        developers: z.string().max(100).optional().nullable(),
+        isActive: z.boolean().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        return db.updatePlatform(id, data);
+      }),
+    
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.deletePlatform(input.id);
+        return { success: true };
+      }),
+    
+    hardDelete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.hardDeletePlatform(input.id);
+        return { success: true };
+      }),
   }),
 
   // ============================================

@@ -639,3 +639,55 @@ export async function globalSearch(query: string): Promise<GlobalSearchResult> {
     apiModels: apiResults.map(a => ({ ...a, type: 'api' as const })),
   };
 }
+
+
+// ============================================
+// Platform CRUD (Admin)
+// ============================================
+
+export async function getAllPlatformsAdmin(): Promise<Platform[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  // Return all platforms including inactive ones for admin
+  return db.select().from(platforms).orderBy(platforms.name);
+}
+
+export async function createPlatform(platform: InsertPlatform): Promise<Platform> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(platforms).values(platform);
+  const insertId = result[0].insertId;
+  
+  const created = await db.select().from(platforms).where(eq(platforms.id, insertId)).limit(1);
+  return created[0];
+}
+
+export async function updatePlatform(id: number, platform: Partial<InsertPlatform>): Promise<Platform | undefined> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(platforms).set(platform).where(eq(platforms.id, id));
+  
+  const updated = await db.select().from(platforms).where(eq(platforms.id, id)).limit(1);
+  return updated[0];
+}
+
+export async function deletePlatform(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // Soft delete by setting isActive to false
+  await db.update(platforms).set({ isActive: false }).where(eq(platforms.id, id));
+}
+
+export async function hardDeletePlatform(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // First delete related API pricing
+  await db.delete(apiPricing).where(eq(apiPricing.platformId, id));
+  // Then delete the platform
+  await db.delete(platforms).where(eq(platforms.id, id));
+}

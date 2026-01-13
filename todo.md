@@ -244,3 +244,16 @@
 
 ### Content
 - [x] Blog-Artikel: "Wie man KI-Tools in Unternehmen implementiert"
+
+
+## Admin Plattform-Verwaltung (Phase 60+)
+
+### Backend
+- [x] API-Endpunkte für Plattform CRUD (Create, Read, Update, Delete)
+- [x] Validierung für Plattform-Daten
+
+### Frontend
+- [x] Admin-Tab für Plattform-Verwaltung
+- [x] Formular zum Erstellen neuer Plattformen
+- [x] Bearbeiten-Dialog für bestehende Plattformen
+- [x] Löschen-Funktion mit Bestätigung
