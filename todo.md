@@ -280,3 +280,5 @@
 
 ## Deployment
 - [x] .env.example Datei für Coolify mit PostgreSQL erstellen
+
+- [x] SQL-Seed-Dateien für PostgreSQL-Import erstellen

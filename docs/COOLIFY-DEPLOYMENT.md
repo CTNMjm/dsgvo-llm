@@ -165,6 +165,20 @@ Stellen Sie sicher, dass alle erforderlichen Umgebungsvariablen gesetzt sind:
 - `DATABASE_URL`
 - `JWT_SECRET`
 
+## Datenbank mit Seed-Daten füllen
+
+Nach der Migration können Sie die Seed-Daten importieren:
+
+```bash
+# PostgreSQL Seed-Datei importieren
+psql $DATABASE_URL -f drizzle/seeds/seed-postgres.sql
+```
+
+Die Seed-Datei enthält:
+- 12 LLM-Plattformen
+- 48 API-Preiseinträge
+- 3 Blog-Artikel
+
 ## Backup & Restore
 
 ### Datenbank-Backup
