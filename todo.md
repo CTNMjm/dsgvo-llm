@@ -282,3 +282,9 @@
 
 - [x] Drizzle-Config auf MySQL korrigieren (dialect: "mysql")
 - [x] Alte Migrations löschen und neu generieren
+
+
+## Datenbank-Test (Phase 72)
+
+- [x] Testskript für Datenbankverbindung erstellen
+- [x] Überprüfung der Seed-Daten implementieren
