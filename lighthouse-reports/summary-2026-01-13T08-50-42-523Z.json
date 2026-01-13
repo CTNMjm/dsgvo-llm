@@ -1,0 +1,28 @@
+{
+  "url": "https://3000-ineowfh50etkorg0gh8og-d06a5621.us2.manus.computer",
+  "timestamp": "2026-01-13T08:50:42.528Z",
+  "scores": {
+    "performance": 61,
+    "accessibility": 81,
+    "bestPractices": 81,
+    "seo": 100
+  },
+  "metrics": {
+    "fcp": "2.1 s",
+    "lcp": "9.6 s",
+    "tbt": "90 ms",
+    "cls": "0",
+    "si": "2.5 s",
+    "tti": "9.6 s"
+  },
+  "opportunities": [
+    {
+      "title": "Minify JavaScript",
+      "potential": "Est savings of 1,773 KiB"
+    },
+    {
+      "title": "Reduce unused JavaScript",
+      "potential": "Est savings of 1,745 KiB"
+    }
+  ]
+}

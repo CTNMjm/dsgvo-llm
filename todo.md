@@ -194,3 +194,20 @@
 - [x] Lazy Loading für Bilder implementieren (LazyImage Komponente)
 - [x] Code-Splitting für Routen einrichten (React.lazy)
 - [x] Bundle-Größe optimieren (Vendor Chunks)
+
+
+## UX und Testing (Phase 57+)
+
+### Lighthouse-Audit
+- [x] Performance-Audit durchführen (61/100 Performance, 100/100 SEO)
+- [x] Optimierungsempfehlungen dokumentieren (docs/LIGHTHOUSE-AUDIT.md)
+- [x] Audit-Script erstellt (scripts/lighthouse-audit.mjs)
+
+### Playwright E2E-Tests
+- [x] Playwright installieren und konfigurieren
+- [x] Tests für kritische User-Flows erstellen (11 Tests)
+- [x] CI-Integration für E2E-Tests
+
+### Zum-Anfang-Button
+- [x] Scroll-to-Top Button implementieren
+- [x] Animation und Sichtbarkeitslogik (Framer Motion)

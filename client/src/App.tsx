@@ -5,6 +5,7 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { CookieConsent } from "./components/CookieConsent";
+import { ScrollToTop } from "./components/ScrollToTop";
 
 // Lazy-loaded pages für Code-Splitting
 const Home = lazy(() => import("./pages/Home"));
@@ -69,6 +70,7 @@ function App() {
           <Toaster />
           <Router />
           <CookieConsent />
+          <ScrollToTop />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
