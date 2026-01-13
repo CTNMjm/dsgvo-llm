@@ -276,3 +276,9 @@
 - [x] S3-Upload-Funktion für Logos
 - [x] Bild-Upload-Komponente im Plattform-Formular
 - [x] Vorschau für hochgeladene Bilder
+
+
+## MySQL-Konfiguration Fix (Phase 71)
+
+- [x] Drizzle-Config auf MySQL korrigieren (dialect: "mysql")
+- [x] Alte Migrations löschen und neu generieren
