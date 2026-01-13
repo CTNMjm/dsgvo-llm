@@ -293,3 +293,5 @@
 ## Dockerfile Fix (Phase 73)
 
 - [x] Dockerfile anpassen: patches-Ordner kopieren
+
+- [x] Dockerfile CMD-Pfad korrigieren (dist/index.js statt dist/server/_core/index.js)

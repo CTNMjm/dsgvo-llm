@@ -68,4 +68,4 @@ USER appuser
 EXPOSE 3000
 
 # Production Server starten
-CMD ["node", "dist/server/_core/index.js"]
+CMD ["node", "dist/index.js"]
