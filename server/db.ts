@@ -193,6 +193,16 @@ export async function updateBlogPost(id: number, updates: Partial<InsertBlogPost
   await db.update(blogPosts).set(updates).where(eq(blogPosts.id, id));
 }
 
+export async function deleteBlogPost(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  // First delete related comments
+  await db.delete(blogComments).where(eq(blogComments.postId, id));
+  // Then delete the blog post
+  await db.delete(blogPosts).where(eq(blogPosts.id, id));
+}
+
 // ============================================
 // Blog Comments Functions
 // ============================================
@@ -407,6 +417,15 @@ export async function getAllApiPricing(): Promise<ApiPricing[]> {
   
   return db.select().from(apiPricing)
     .where(eq(apiPricing.isAvailable, true))
+    .orderBy(apiPricing.provider, apiPricing.modelName);
+}
+
+export async function getAllApiPricingAdmin(): Promise<ApiPricing[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  // Return all API pricing including unavailable for admin
+  return db.select().from(apiPricing)
     .orderBy(apiPricing.provider, apiPricing.modelName);
 }
 

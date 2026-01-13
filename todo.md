@@ -257,3 +257,22 @@
 - [x] Formular zum Erstellen neuer Plattformen
 - [x] Bearbeiten-Dialog für bestehende Plattformen
 - [x] Löschen-Funktion mit Bestätigung
+
+
+## Admin-Erweiterungen Phase 70+
+
+### API-Preistabelle CRUD
+- [x] Admin-Tab für API-Preise hinzufügen
+- [x] Formular zum Erstellen neuer API-Preise
+- [x] Bearbeiten und Löschen von API-Preisen
+
+### Blog-Artikel-Verwaltung
+- [x] Admin-Tab für Blog-Artikel
+- [x] Formular zum Erstellen neuer Artikel
+- [x] Bearbeiten und Löschen von Artikeln
+- [x] Markdown-Editor für Content
+
+### Bild-Upload
+- [x] S3-Upload-Funktion für Logos
+- [x] Bild-Upload-Komponente im Plattform-Formular
+- [x] Vorschau für hochgeladene Bilder

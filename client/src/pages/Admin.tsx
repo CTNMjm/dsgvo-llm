@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LayoutDashboard, MessageSquare, Users, FileText, CheckCircle2, XCircle, Loader2, Mail, AlertCircle, Star, LogOut, CheckSquare, Square, Server, Plus, Pencil, Trash2, Eye, EyeOff } from "lucide-react";
+import { LayoutDashboard, MessageSquare, Users, FileText, CheckCircle2, XCircle, Loader2, Mail, AlertCircle, Star, LogOut, CheckSquare, Server, Plus, Pencil, Trash2, Eye, EyeOff, DollarSign, BookOpen } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -14,8 +14,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
+import { ImageUpload } from "@/components/ImageUpload";
 
 // Platform form type
 interface PlatformFormData {
@@ -68,6 +69,66 @@ const emptyPlatformForm: PlatformFormData = {
   isActive: true,
 };
 
+// API Pricing form type
+interface ApiPricingFormData {
+  platformId: number;
+  provider: string;
+  modelName: string;
+  modelVersion: string;
+  inputPricePerMillion: string;
+  outputPricePerMillion: string;
+  regions: string[];
+  supportedLanguages: string[];
+  capabilities: string[];
+  contextWindow: number | null;
+  notes: string;
+  isAvailable: boolean;
+}
+
+const emptyApiPricingForm: ApiPricingFormData = {
+  platformId: 0,
+  provider: "",
+  modelName: "",
+  modelVersion: "",
+  inputPricePerMillion: "",
+  outputPricePerMillion: "",
+  regions: [],
+  supportedLanguages: [],
+  capabilities: [],
+  contextWindow: null,
+  notes: "",
+  isAvailable: true,
+};
+
+// Blog form type
+interface BlogFormData {
+  slug: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  author: string;
+  category: string;
+  readTime: string;
+  imageUrl: string;
+  metaTitle: string;
+  metaDescription: string;
+  isPublished: boolean;
+}
+
+const emptyBlogForm: BlogFormData = {
+  slug: "",
+  title: "",
+  excerpt: "",
+  content: "",
+  author: "",
+  category: "Ratgeber",
+  readTime: "",
+  imageUrl: "",
+  metaTitle: "",
+  metaDescription: "",
+  isPublished: false,
+};
+
 export default function Admin() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const utils = trpc.useUtils();
@@ -82,6 +143,20 @@ export default function Admin() {
   const [platformForm, setPlatformForm] = useState<PlatformFormData>(emptyPlatformForm);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [platformToDelete, setPlatformToDelete] = useState<number | null>(null);
+  
+  // API Pricing form state
+  const [apiPricingDialogOpen, setApiPricingDialogOpen] = useState(false);
+  const [editingApiPricing, setEditingApiPricing] = useState<number | null>(null);
+  const [apiPricingForm, setApiPricingForm] = useState<ApiPricingFormData>(emptyApiPricingForm);
+  const [apiPricingToDelete, setApiPricingToDelete] = useState<number | null>(null);
+  const [apiDeleteConfirmOpen, setApiDeleteConfirmOpen] = useState(false);
+  
+  // Blog form state
+  const [blogDialogOpen, setBlogDialogOpen] = useState(false);
+  const [editingBlog, setEditingBlog] = useState<number | null>(null);
+  const [blogForm, setBlogForm] = useState<BlogFormData>(emptyBlogForm);
+  const [blogToDelete, setBlogToDelete] = useState<number | null>(null);
+  const [blogDeleteConfirmOpen, setBlogDeleteConfirmOpen] = useState(false);
   
   // Check if user is admin
   const isAdmin = user?.role === 'admin';
@@ -118,6 +193,16 @@ export default function Admin() {
   );
   
   const { data: platforms = [], isLoading: platformsLoading } = trpc.platforms.listAll.useQuery(
+    undefined,
+    { enabled: isAdmin }
+  );
+  
+  const { data: apiPricingList = [], isLoading: apiPricingLoading } = trpc.apiPricing.listAllAdmin.useQuery(
+    undefined,
+    { enabled: isAdmin }
+  );
+  
+  const { data: blogPosts = [], isLoading: blogPostsLoading } = trpc.blog.listAll.useQuery(
     undefined,
     { enabled: isAdmin }
   );
@@ -207,6 +292,88 @@ export default function Admin() {
       toast.error(`Fehler: ${error.message}`);
     }
   });
+  
+  // API Pricing mutations
+  const createApiPricing = trpc.apiPricing.create.useMutation({
+    onSuccess: () => {
+      toast.success("API-Preis erstellt");
+      utils.apiPricing.listAllAdmin.invalidate();
+      utils.apiPricing.listAll.invalidate();
+      setApiPricingDialogOpen(false);
+      setApiPricingForm(emptyApiPricingForm);
+    },
+    onError: (error) => {
+      toast.error(`Fehler: ${error.message}`);
+    }
+  });
+  
+  const updateApiPricing = trpc.apiPricing.update.useMutation({
+    onSuccess: () => {
+      toast.success("API-Preis aktualisiert");
+      utils.apiPricing.listAllAdmin.invalidate();
+      utils.apiPricing.listAll.invalidate();
+      setApiPricingDialogOpen(false);
+      setEditingApiPricing(null);
+      setApiPricingForm(emptyApiPricingForm);
+    },
+    onError: (error) => {
+      toast.error(`Fehler: ${error.message}`);
+    }
+  });
+  
+  const deleteApiPricing = trpc.apiPricing.delete.useMutation({
+    onSuccess: () => {
+      toast.success("API-Preis gelöscht");
+      utils.apiPricing.listAllAdmin.invalidate();
+      utils.apiPricing.listAll.invalidate();
+      setApiDeleteConfirmOpen(false);
+      setApiPricingToDelete(null);
+    },
+    onError: (error) => {
+      toast.error(`Fehler: ${error.message}`);
+    }
+  });
+  
+  // Blog mutations
+  const createBlog = trpc.blog.create.useMutation({
+    onSuccess: () => {
+      toast.success("Blog-Artikel erstellt");
+      utils.blog.listAll.invalidate();
+      utils.blog.list.invalidate();
+      setBlogDialogOpen(false);
+      setBlogForm(emptyBlogForm);
+    },
+    onError: (error) => {
+      toast.error(`Fehler: ${error.message}`);
+    }
+  });
+  
+  const updateBlog = trpc.blog.update.useMutation({
+    onSuccess: () => {
+      toast.success("Blog-Artikel aktualisiert");
+      utils.blog.listAll.invalidate();
+      utils.blog.list.invalidate();
+      setBlogDialogOpen(false);
+      setEditingBlog(null);
+      setBlogForm(emptyBlogForm);
+    },
+    onError: (error) => {
+      toast.error(`Fehler: ${error.message}`);
+    }
+  });
+  
+  const deleteBlog = trpc.blog.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Blog-Artikel gelöscht");
+      utils.blog.listAll.invalidate();
+      utils.blog.list.invalidate();
+      setBlogDeleteConfirmOpen(false);
+      setBlogToDelete(null);
+    },
+    onError: (error) => {
+      toast.error(`Fehler: ${error.message}`);
+    }
+  });
 
   const logoutMutation = trpc.auth.logout.useMutation({
     onSuccess: () => {
@@ -245,13 +412,13 @@ export default function Admin() {
   };
   
   // Platform form helpers
-  const openCreateDialog = () => {
+  const openCreatePlatformDialog = () => {
     setPlatformForm(emptyPlatformForm);
     setEditingPlatform(null);
     setPlatformDialogOpen(true);
   };
   
-  const openEditDialog = (platform: typeof platforms[0]) => {
+  const openEditPlatformDialog = (platform: typeof platforms[0]) => {
     setPlatformForm({
       slug: platform.slug,
       name: platform.name,
@@ -306,6 +473,95 @@ export default function Admin() {
   const handleArrayInput = (field: 'compliance' | 'features' | 'pros' | 'cons', value: string) => {
     const items = value.split('\n').map(s => s.trim()).filter(Boolean);
     setPlatformForm(prev => ({ ...prev, [field]: items }));
+  };
+  
+  // API Pricing form helpers
+  const openCreateApiPricingDialog = () => {
+    setApiPricingForm(emptyApiPricingForm);
+    setEditingApiPricing(null);
+    setApiPricingDialogOpen(true);
+  };
+  
+  const openEditApiPricingDialog = (pricing: typeof apiPricingList[0]) => {
+    setApiPricingForm({
+      platformId: pricing.platformId,
+      provider: pricing.provider,
+      modelName: pricing.modelName,
+      modelVersion: pricing.modelVersion || "",
+      inputPricePerMillion: pricing.inputPricePerMillion,
+      outputPricePerMillion: pricing.outputPricePerMillion,
+      regions: (pricing.regions as string[]) || [],
+      supportedLanguages: (pricing.supportedLanguages as string[]) || [],
+      capabilities: (pricing.capabilities as string[]) || [],
+      contextWindow: pricing.contextWindow || null,
+      notes: pricing.notes || "",
+      isAvailable: pricing.isAvailable ?? true,
+    });
+    setEditingApiPricing(pricing.id);
+    setApiPricingDialogOpen(true);
+  };
+  
+  const handleApiPricingSubmit = () => {
+    const data = {
+      ...apiPricingForm,
+      modelVersion: apiPricingForm.modelVersion || undefined,
+      contextWindow: apiPricingForm.contextWindow || undefined,
+      notes: apiPricingForm.notes || undefined,
+    };
+    
+    if (editingApiPricing) {
+      updateApiPricing.mutate({ id: editingApiPricing, ...data });
+    } else {
+      createApiPricing.mutate(data);
+    }
+  };
+  
+  const handleApiArrayInput = (field: 'regions' | 'supportedLanguages' | 'capabilities', value: string) => {
+    const items = value.split('\n').map(s => s.trim()).filter(Boolean);
+    setApiPricingForm(prev => ({ ...prev, [field]: items }));
+  };
+  
+  // Blog form helpers
+  const openCreateBlogDialog = () => {
+    setBlogForm(emptyBlogForm);
+    setEditingBlog(null);
+    setBlogDialogOpen(true);
+  };
+  
+  const openEditBlogDialog = (post: typeof blogPosts[0]) => {
+    setBlogForm({
+      slug: post.slug,
+      title: post.title,
+      excerpt: post.excerpt || "",
+      content: post.content || "",
+      author: post.author,
+      category: post.category || "Ratgeber",
+      readTime: post.readTime || "",
+      imageUrl: post.imageUrl || "",
+      metaTitle: post.metaTitle || "",
+      metaDescription: post.metaDescription || "",
+      isPublished: post.isPublished ?? false,
+    });
+    setEditingBlog(post.id);
+    setBlogDialogOpen(true);
+  };
+  
+  const handleBlogSubmit = () => {
+    const data = {
+      ...blogForm,
+      excerpt: blogForm.excerpt || undefined,
+      category: blogForm.category || undefined,
+      readTime: blogForm.readTime || undefined,
+      imageUrl: blogForm.imageUrl || undefined,
+      metaTitle: blogForm.metaTitle || undefined,
+      metaDescription: blogForm.metaDescription || undefined,
+    };
+    
+    if (editingBlog) {
+      updateBlog.mutate({ id: editingBlog, updates: data });
+    } else {
+      createBlog.mutate(data);
+    }
   };
 
   // Loading state
@@ -368,7 +624,14 @@ export default function Admin() {
   const pendingSuggestions = suggestions.filter(s => s.status === 'pending').length;
   const newLeads = leads.filter(l => l.status === 'new').length;
   const activePlatforms = platforms.filter(p => p.isActive).length;
-  const inactivePlatforms = platforms.filter(p => !p.isActive).length;
+  const activeApiPricing = apiPricingList.filter(p => p.isAvailable).length;
+  const publishedPosts = blogPosts.filter(p => p.isPublished).length;
+
+  // Get platform name by ID
+  const getPlatformName = (platformId: number) => {
+    const platform = platforms.find(p => p.id === platformId);
+    return platform?.name || `ID: ${platformId}`;
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 pb-20">
@@ -423,8 +686,8 @@ export default function Admin() {
             </Card>
             <Card>
               <CardContent className="p-4">
-                <div className="text-2xl font-bold">{stats.suggestions.total}</div>
-                <div className="text-sm text-slate-500">Vorschläge</div>
+                <div className="text-2xl font-bold">{blogPosts.length}</div>
+                <div className="text-sm text-slate-500">Blog-Artikel</div>
               </CardContent>
             </Card>
           </div>
@@ -435,6 +698,14 @@ export default function Admin() {
             <TabsTrigger value="platforms" className="data-[state=active]:bg-slate-100">
               <Server className="mr-2 h-4 w-4" /> Plattformen
               <Badge variant="secondary" className="ml-2 bg-slate-100 text-slate-700">{activePlatforms}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="apiPricing" className="data-[state=active]:bg-slate-100">
+              <DollarSign className="mr-2 h-4 w-4" /> API-Preise
+              <Badge variant="secondary" className="ml-2 bg-slate-100 text-slate-700">{activeApiPricing}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="blog" className="data-[state=active]:bg-slate-100">
+              <BookOpen className="mr-2 h-4 w-4" /> Blog
+              <Badge variant="secondary" className="ml-2 bg-slate-100 text-slate-700">{publishedPosts}</Badge>
             </TabsTrigger>
             <TabsTrigger value="reviews" className="data-[state=active]:bg-slate-100">
               <Star className="mr-2 h-4 w-4" /> Bewertungen
@@ -474,7 +745,7 @@ export default function Admin() {
                     <CardTitle>LLM-Plattformen verwalten</CardTitle>
                     <CardDescription>Erstellen, bearbeiten und löschen Sie Plattformen.</CardDescription>
                   </div>
-                  <Button onClick={openCreateDialog}>
+                  <Button onClick={openCreatePlatformDialog}>
                     <Plus className="mr-2 h-4 w-4" /> Neue Plattform
                   </Button>
                 </div>
@@ -521,7 +792,7 @@ export default function Admin() {
                           <Button 
                             size="sm" 
                             variant="outline"
-                            onClick={() => openEditDialog(platform)}
+                            onClick={() => openEditPlatformDialog(platform)}
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
@@ -549,6 +820,148 @@ export default function Admin() {
             </Card>
           </TabsContent>
 
+          {/* API Pricing Tab */}
+          <TabsContent value="apiPricing" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>API-Preise verwalten</CardTitle>
+                    <CardDescription>Erstellen, bearbeiten und löschen Sie API-Preise für Modelle.</CardDescription>
+                  </div>
+                  <Button onClick={openCreateApiPricingDialog}>
+                    <Plus className="mr-2 h-4 w-4" /> Neuer API-Preis
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {apiPricingLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full" />)}
+                  </div>
+                ) : apiPricingList.length === 0 ? (
+                  <p className="text-slate-500 text-center py-8">Keine API-Preise vorhanden.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {apiPricingList.map((pricing) => (
+                      <div 
+                        key={pricing.id} 
+                        className={`flex items-center justify-between p-4 rounded-lg border ${pricing.isAvailable ? 'border-slate-200 bg-white' : 'border-red-200 bg-red-50'}`}
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold">{pricing.modelName}</span>
+                            <Badge variant="outline" className="text-xs">{pricing.provider}</Badge>
+                            {!pricing.isAvailable && (
+                              <Badge variant="destructive" className="text-xs">Inaktiv</Badge>
+                            )}
+                          </div>
+                          <div className="text-sm text-slate-500 flex items-center gap-4 mt-1">
+                            <span>Plattform: {getPlatformName(pricing.platformId)}</span>
+                            <span>Input: €{pricing.inputPricePerMillion}/M</span>
+                            <span>Output: €{pricing.outputPricePerMillion}/M</span>
+                            {pricing.contextWindow && <span>Context: {(pricing.contextWindow / 1000).toFixed(0)}K</span>}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => openEditApiPricingDialog(pricing)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="text-red-600 hover:bg-red-50"
+                            onClick={() => {
+                              setApiPricingToDelete(pricing.id);
+                              setApiDeleteConfirmOpen(true);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Blog Tab */}
+          <TabsContent value="blog" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Blog-Artikel verwalten</CardTitle>
+                    <CardDescription>Erstellen, bearbeiten und löschen Sie Blog-Artikel.</CardDescription>
+                  </div>
+                  <Button onClick={openCreateBlogDialog}>
+                    <Plus className="mr-2 h-4 w-4" /> Neuer Artikel
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {blogPostsLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full" />)}
+                  </div>
+                ) : blogPosts.length === 0 ? (
+                  <p className="text-slate-500 text-center py-8">Keine Blog-Artikel vorhanden.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {blogPosts.map((post) => (
+                      <div 
+                        key={post.id} 
+                        className={`flex items-center justify-between p-4 rounded-lg border ${post.isPublished ? 'border-slate-200 bg-white' : 'border-yellow-200 bg-yellow-50'}`}
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold">{post.title}</span>
+                            {post.category && <Badge variant="outline" className="text-xs">{post.category}</Badge>}
+                            {!post.isPublished && (
+                              <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-700">Entwurf</Badge>
+                            )}
+                          </div>
+                          <div className="text-sm text-slate-500 flex items-center gap-4 mt-1">
+                            <span>Von: {post.author}</span>
+                            {post.readTime && <span>{post.readTime}</span>}
+                            <span>/{post.slug}</span>
+                            <span>{formatDate(post.publishedAt)}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => openEditBlogDialog(post)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="text-red-600 hover:bg-red-50"
+                            onClick={() => {
+                              setBlogToDelete(post.id);
+                              setBlogDeleteConfirmOpen(true);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Reviews Tab */}
           <TabsContent value="reviews" className="space-y-4">
             <Card>
@@ -558,7 +971,6 @@ export default function Admin() {
                     <CardTitle>Plattform-Bewertungen</CardTitle>
                     <CardDescription>Verwalten Sie Nutzer-Bewertungen.</CardDescription>
                   </div>
-                  {/* Bulk Actions */}
                   {selectedReviews.length > 0 && (
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-slate-500">{selectedReviews.length} ausgewählt</span>
@@ -617,7 +1029,6 @@ export default function Admin() {
                             <span className="text-slate-400 font-normal text-sm">• {formatDate(review.createdAt)}</span>
                           </div>
                           <p className="text-sm text-slate-600">{review.content}</p>
-                          
                         </div>
                         {review.status === 'pending' && (
                           <div className="flex gap-2">
@@ -658,7 +1069,6 @@ export default function Admin() {
                     <CardTitle>Blog-Kommentare</CardTitle>
                     <CardDescription>Moderieren Sie Kommentare zu Blog-Artikeln.</CardDescription>
                   </div>
-                  {/* Bulk Actions */}
                   {selectedComments.length > 0 && (
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-slate-500">{selectedComments.length} ausgewählt</span>
@@ -926,7 +1336,6 @@ export default function Admin() {
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
-            {/* Basic Info */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Name *</Label>
@@ -969,7 +1378,6 @@ export default function Admin() {
               </div>
             </div>
             
-            {/* Pricing */}
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="pricingModel">Preismodell *</Label>
@@ -1010,7 +1418,6 @@ export default function Admin() {
               </div>
             </div>
             
-            {/* URLs */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="websiteUrl">Website URL</Label>
@@ -1022,17 +1429,17 @@ export default function Admin() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="logoUrl">Logo URL</Label>
-                <Input 
-                  id="logoUrl" 
+                <ImageUpload
                   value={platformForm.logoUrl}
-                  onChange={(e) => setPlatformForm(prev => ({ ...prev, logoUrl: e.target.value }))}
+                  onChange={(url) => setPlatformForm(prev => ({ ...prev, logoUrl: url }))}
+                  folder="logos"
+                  label="Logo"
                   placeholder="https://..."
+                  maxSizeMB={2}
                 />
               </div>
             </div>
             
-            {/* Description */}
             <div className="space-y-2">
               <Label htmlFor="description">Beschreibung</Label>
               <Textarea 
@@ -1044,7 +1451,6 @@ export default function Admin() {
               />
             </div>
             
-            {/* Compliance */}
             <div className="space-y-2">
               <Label htmlFor="compliance">Compliance (eine pro Zeile)</Label>
               <Textarea 
@@ -1056,7 +1462,6 @@ export default function Admin() {
               />
             </div>
             
-            {/* Features */}
             <div className="space-y-2">
               <Label htmlFor="features">Features (eine pro Zeile)</Label>
               <Textarea 
@@ -1068,7 +1473,6 @@ export default function Admin() {
               />
             </div>
             
-            {/* Pros & Cons */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="pros">Vorteile (eine pro Zeile)</Label>
@@ -1092,7 +1496,6 @@ export default function Admin() {
               </div>
             </div>
             
-            {/* Custom GPTs */}
             <div className="flex items-center space-x-2">
               <Switch 
                 id="customGPTs" 
@@ -1102,50 +1505,6 @@ export default function Admin() {
               <Label htmlFor="customGPTs">Custom GPTs unterstützt</Label>
             </div>
             
-            {platformForm.customGPTs && (
-              <div className="space-y-2">
-                <Label htmlFor="customGPTDetails">Custom GPT Details</Label>
-                <Input 
-                  id="customGPTDetails" 
-                  value={platformForm.customGPTDetails}
-                  onChange={(e) => setPlatformForm(prev => ({ ...prev, customGPTDetails: e.target.value }))}
-                  placeholder="z.B. Unbegrenzte Custom GPTs"
-                />
-              </div>
-            )}
-            
-            {/* Company Details */}
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="employees">Mitarbeiter</Label>
-                <Input 
-                  id="employees" 
-                  value={platformForm.employees}
-                  onChange={(e) => setPlatformForm(prev => ({ ...prev, employees: e.target.value }))}
-                  placeholder="z.B. 1.000+"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="customers">Kunden</Label>
-                <Input 
-                  id="customers" 
-                  value={platformForm.customers}
-                  onChange={(e) => setPlatformForm(prev => ({ ...prev, customers: e.target.value }))}
-                  placeholder="z.B. 100.000+"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="developers">Entwickler</Label>
-                <Input 
-                  id="developers" 
-                  value={platformForm.developers}
-                  onChange={(e) => setPlatformForm(prev => ({ ...prev, developers: e.target.value }))}
-                  placeholder="z.B. 500+"
-                />
-              </div>
-            </div>
-            
-            {/* Active Status */}
             <div className="flex items-center space-x-2">
               <Switch 
                 id="isActive" 
@@ -1171,7 +1530,7 @@ export default function Admin() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Platform Delete Confirmation Dialog */}
       <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <DialogContent>
           <DialogHeader>
@@ -1191,6 +1550,334 @@ export default function Admin() {
             >
               {deletePlatform.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Deaktivieren
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* API Pricing Create/Edit Dialog */}
+      <Dialog open={apiPricingDialogOpen} onOpenChange={setApiPricingDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingApiPricing ? 'API-Preis bearbeiten' : 'Neuen API-Preis erstellen'}</DialogTitle>
+            <DialogDescription>
+              {editingApiPricing ? 'Ändern Sie die API-Preis-Details.' : 'Füllen Sie die Details für den neuen API-Preis aus.'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="platformId">Plattform *</Label>
+              <Select 
+                value={apiPricingForm.platformId.toString()}
+                onValueChange={(value) => setApiPricingForm(prev => ({ ...prev, platformId: parseInt(value) }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Plattform auswählen" />
+                </SelectTrigger>
+                <SelectContent>
+                  {platforms.filter(p => p.isActive).map(p => (
+                    <SelectItem key={p.id} value={p.id.toString()}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="provider">Provider *</Label>
+                <Input 
+                  id="provider" 
+                  value={apiPricingForm.provider}
+                  onChange={(e) => setApiPricingForm(prev => ({ ...prev, provider: e.target.value }))}
+                  placeholder="z.B. OpenAI"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="modelName">Modell-Name *</Label>
+                <Input 
+                  id="modelName" 
+                  value={apiPricingForm.modelName}
+                  onChange={(e) => setApiPricingForm(prev => ({ ...prev, modelName: e.target.value }))}
+                  placeholder="z.B. GPT-4 Turbo"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="inputPrice">Input €/M Tokens *</Label>
+                <Input 
+                  id="inputPrice" 
+                  value={apiPricingForm.inputPricePerMillion}
+                  onChange={(e) => setApiPricingForm(prev => ({ ...prev, inputPricePerMillion: e.target.value }))}
+                  placeholder="z.B. 10.00"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="outputPrice">Output €/M Tokens *</Label>
+                <Input 
+                  id="outputPrice" 
+                  value={apiPricingForm.outputPricePerMillion}
+                  onChange={(e) => setApiPricingForm(prev => ({ ...prev, outputPricePerMillion: e.target.value }))}
+                  placeholder="z.B. 30.00"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="contextWindow">Context Window</Label>
+                <Input 
+                  id="contextWindow" 
+                  type="number"
+                  value={apiPricingForm.contextWindow || ''}
+                  onChange={(e) => setApiPricingForm(prev => ({ ...prev, contextWindow: e.target.value ? parseInt(e.target.value) : null }))}
+                  placeholder="z.B. 128000"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="capabilities">Capabilities (eine pro Zeile)</Label>
+              <Textarea 
+                id="capabilities" 
+                value={apiPricingForm.capabilities.join('\n')}
+                onChange={(e) => handleApiArrayInput('capabilities', e.target.value)}
+                placeholder="chat&#10;code&#10;vision"
+                rows={2}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="regions">Regionen (eine pro Zeile)</Label>
+              <Textarea 
+                id="regions" 
+                value={apiPricingForm.regions.join('\n')}
+                onChange={(e) => handleApiArrayInput('regions', e.target.value)}
+                placeholder="EU&#10;US&#10;Global"
+                rows={2}
+              />
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Switch 
+                id="apiIsAvailable" 
+                checked={apiPricingForm.isAvailable}
+                onCheckedChange={(checked) => setApiPricingForm(prev => ({ ...prev, isAvailable: checked }))}
+              />
+              <Label htmlFor="apiIsAvailable">Verfügbar (öffentlich sichtbar)</Label>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setApiPricingDialogOpen(false)}>
+              Abbrechen
+            </Button>
+            <Button 
+              onClick={handleApiPricingSubmit}
+              disabled={createApiPricing.isPending || updateApiPricing.isPending || !apiPricingForm.platformId || !apiPricingForm.provider || !apiPricingForm.modelName}
+            >
+              {(createApiPricing.isPending || updateApiPricing.isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {editingApiPricing ? 'Speichern' : 'Erstellen'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* API Pricing Delete Confirmation Dialog */}
+      <Dialog open={apiDeleteConfirmOpen} onOpenChange={setApiDeleteConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>API-Preis löschen?</DialogTitle>
+            <DialogDescription>
+              Der API-Preis wird dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setApiDeleteConfirmOpen(false)}>
+              Abbrechen
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={() => apiPricingToDelete && deleteApiPricing.mutate({ id: apiPricingToDelete })}
+              disabled={deleteApiPricing.isPending}
+            >
+              {deleteApiPricing.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Löschen
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Blog Create/Edit Dialog */}
+      <Dialog open={blogDialogOpen} onOpenChange={setBlogDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingBlog ? 'Blog-Artikel bearbeiten' : 'Neuen Blog-Artikel erstellen'}</DialogTitle>
+            <DialogDescription>
+              {editingBlog ? 'Ändern Sie die Artikel-Details.' : 'Füllen Sie die Details für den neuen Artikel aus.'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="blogTitle">Titel *</Label>
+                <Input 
+                  id="blogTitle" 
+                  value={blogForm.title}
+                  onChange={(e) => setBlogForm(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="Artikel-Titel"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="blogSlug">Slug *</Label>
+                <Input 
+                  id="blogSlug" 
+                  value={blogForm.slug}
+                  onChange={(e) => setBlogForm(prev => ({ ...prev, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') }))}
+                  placeholder="artikel-slug"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="blogAuthor">Autor *</Label>
+                <Input 
+                  id="blogAuthor" 
+                  value={blogForm.author}
+                  onChange={(e) => setBlogForm(prev => ({ ...prev, author: e.target.value }))}
+                  placeholder="Name des Autors"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="blogCategory">Kategorie</Label>
+                <Select 
+                  value={blogForm.category}
+                  onValueChange={(value) => setBlogForm(prev => ({ ...prev, category: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Ratgeber">Ratgeber</SelectItem>
+                    <SelectItem value="News">News</SelectItem>
+                    <SelectItem value="Vergleich">Vergleich</SelectItem>
+                    <SelectItem value="Tutorial">Tutorial</SelectItem>
+                    <SelectItem value="Analyse">Analyse</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="blogReadTime">Lesezeit</Label>
+                <Input 
+                  id="blogReadTime" 
+                  value={blogForm.readTime}
+                  onChange={(e) => setBlogForm(prev => ({ ...prev, readTime: e.target.value }))}
+                  placeholder="z.B. 8 Min."
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="blogExcerpt">Kurzfassung</Label>
+              <Textarea 
+                id="blogExcerpt" 
+                value={blogForm.excerpt}
+                onChange={(e) => setBlogForm(prev => ({ ...prev, excerpt: e.target.value }))}
+                placeholder="Kurze Zusammenfassung des Artikels..."
+                rows={2}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="blogContent">Inhalt (Markdown) *</Label>
+              <Textarea 
+                id="blogContent" 
+                value={blogForm.content}
+                onChange={(e) => setBlogForm(prev => ({ ...prev, content: e.target.value }))}
+                placeholder="# Überschrift&#10;&#10;Ihr Artikel-Inhalt in Markdown..."
+                rows={15}
+                className="font-mono text-sm"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <ImageUpload
+                value={blogForm.imageUrl}
+                onChange={(url) => setBlogForm(prev => ({ ...prev, imageUrl: url }))}
+                folder="blog"
+                label="Beitragsbild"
+                placeholder="https://..."
+                maxSizeMB={5}
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="blogMetaTitle">Meta-Titel (SEO)</Label>
+                <Input 
+                  id="blogMetaTitle" 
+                  value={blogForm.metaTitle}
+                  onChange={(e) => setBlogForm(prev => ({ ...prev, metaTitle: e.target.value }))}
+                  placeholder="SEO-Titel"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="blogMetaDesc">Meta-Beschreibung (SEO)</Label>
+                <Input 
+                  id="blogMetaDesc" 
+                  value={blogForm.metaDescription}
+                  onChange={(e) => setBlogForm(prev => ({ ...prev, metaDescription: e.target.value }))}
+                  placeholder="SEO-Beschreibung"
+                />
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Switch 
+                id="blogIsPublished" 
+                checked={blogForm.isPublished}
+                onCheckedChange={(checked) => setBlogForm(prev => ({ ...prev, isPublished: checked }))}
+              />
+              <Label htmlFor="blogIsPublished">Veröffentlicht</Label>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBlogDialogOpen(false)}>
+              Abbrechen
+            </Button>
+            <Button 
+              onClick={handleBlogSubmit}
+              disabled={createBlog.isPending || updateBlog.isPending || !blogForm.title || !blogForm.slug || !blogForm.content || !blogForm.author}
+            >
+              {(createBlog.isPending || updateBlog.isPending) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {editingBlog ? 'Speichern' : 'Erstellen'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Blog Delete Confirmation Dialog */}
+      <Dialog open={blogDeleteConfirmOpen} onOpenChange={setBlogDeleteConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Blog-Artikel löschen?</DialogTitle>
+            <DialogDescription>
+              Der Artikel und alle zugehörigen Kommentare werden dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBlogDeleteConfirmOpen(false)}>
+              Abbrechen
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={() => blogToDelete && deleteBlog.mutate({ id: blogToDelete })}
+              disabled={deleteBlog.isPending}
+            >
+              {deleteBlog.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Löschen
             </Button>
           </DialogFooter>
         </DialogContent>

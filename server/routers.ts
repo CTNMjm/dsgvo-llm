@@ -8,6 +8,7 @@ import * as db from "./db";
 import { notifyNewLead, notifyNewReview, notifyNewComment, notifyNewSuggestion, notifyNewSubscriber } from "./services/email";
 import { checkForSpam, getModerationPriority } from "./services/spam";
 import * as magicLink from "./services/magicLink";
+import { storagePut } from "./storage";
 
 // Admin middleware
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -16,6 +17,14 @@ const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   }
   return next({ ctx });
 });
+
+// Helper to generate unique filename
+function generateUniqueFilename(originalName: string): string {
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substring(2, 8);
+  const ext = originalName.split('.').pop() || 'png';
+  return `${timestamp}-${random}.${ext}`;
+}
 
 export const appRouter = router({
   system: systemRouter,
@@ -262,6 +271,7 @@ export const appRouter = router({
       .input(z.object({
         id: z.number(),
         updates: z.object({
+          slug: z.string().optional(),
           title: z.string().optional(),
           excerpt: z.string().optional(),
           content: z.string().optional(),
@@ -277,6 +287,13 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         await db.updateBlogPost(input.id, input.updates);
+        return { success: true };
+      }),
+    
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.deleteBlogPost(input.id);
         return { success: true };
       }),
   }),
@@ -594,6 +611,11 @@ export const appRouter = router({
       return db.getApiPricingProviders();
     }),
     
+    // Admin: List all API pricing (including unavailable)
+    listAllAdmin: adminProcedure.query(async () => {
+      return db.getAllApiPricingAdmin();
+    }),
+    
     create: adminProcedure
       .input(z.object({
         platformId: z.number(),
@@ -603,7 +625,11 @@ export const appRouter = router({
         inputPricePerMillion: z.string(),
         outputPricePerMillion: z.string(),
         regions: z.array(z.string()).optional(),
-        notes: z.string().optional()
+        supportedLanguages: z.array(z.string()).optional(),
+        capabilities: z.array(z.string()).optional(),
+        contextWindow: z.number().optional(),
+        notes: z.string().optional(),
+        isAvailable: z.boolean().optional()
       }))
       .mutation(async ({ input }) => {
         await db.createApiPricing(input);
@@ -613,12 +639,16 @@ export const appRouter = router({
     update: adminProcedure
       .input(z.object({
         id: z.number(),
+        platformId: z.number().optional(),
         provider: z.string().optional(),
         modelName: z.string().optional(),
         modelVersion: z.string().optional(),
         inputPricePerMillion: z.string().optional(),
         outputPricePerMillion: z.string().optional(),
         regions: z.array(z.string()).optional(),
+        supportedLanguages: z.array(z.string()).optional(),
+        capabilities: z.array(z.string()).optional(),
+        contextWindow: z.number().optional(),
         notes: z.string().optional(),
         isAvailable: z.boolean().optional()
       }))
@@ -654,6 +684,46 @@ export const appRouter = router({
     stats: adminProcedure.query(async () => {
       return db.getAdminStats();
     }),
+  }),
+  
+  // ============================================
+  // Upload Routes
+  // ============================================
+  upload: router({
+    // Upload image (base64)
+    image: adminProcedure
+      .input(z.object({
+        data: z.string(), // base64 encoded image
+        filename: z.string(),
+        folder: z.enum(['logos', 'screenshots', 'blog', 'general']).default('general'),
+        contentType: z.string().default('image/png')
+      }))
+      .mutation(async ({ input }) => {
+        try {
+          // Decode base64 to buffer
+          const base64Data = input.data.replace(/^data:image\/\w+;base64,/, '');
+          const buffer = Buffer.from(base64Data, 'base64');
+          
+          // Generate unique filename
+          const uniqueFilename = generateUniqueFilename(input.filename);
+          const key = `uploads/${input.folder}/${uniqueFilename}`;
+          
+          // Upload to S3
+          const result = await storagePut(key, buffer, input.contentType);
+          
+          return {
+            success: true,
+            url: result.url,
+            key: result.key
+          };
+        } catch (error) {
+          console.error('Upload error:', error);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Fehler beim Hochladen des Bildes'
+          });
+        }
+      }),
   }),
 });
 
