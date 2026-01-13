@@ -211,3 +211,21 @@
 ### Zum-Anfang-Button
 - [x] Scroll-to-Top Button implementieren
 - [x] Animation und Sichtbarkeitslogik (Framer Motion)
+
+
+## Weitere Optimierungen (Phase 58+)
+
+### GitHub-Sync und CI/CD
+- [ ] Code zu GitHub pushen
+- [ ] CI/CD-Pipeline aktivieren
+- [ ] E2E-Tests automatisch ausführen
+
+### Production-Build und Lighthouse
+- [ ] Production-Build erstellen
+- [ ] Lighthouse-Audit im Produktionsmodus durchführen
+- [ ] Performance-Werte dokumentieren
+
+### Globale Suchfunktion
+- [ ] Such-API-Endpunkt erstellen
+- [ ] Such-UI-Komponente implementieren
+- [ ] Suche über Plattformen, Blog-Artikel und API-Modelle
