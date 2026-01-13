@@ -165,3 +165,12 @@
 - [x] Logos korrekt im public-Ordner einbinden (17 Logos)
 - [x] Logos auf WebP-Format konvertieren
 - [x] Alle Plattformen mit Logos und Website-URLs versehen
+
+
+## Branding (Phase 55+)
+
+### Favicon und Open Graph
+- [x] Favicon-Design erstellen (16x16, 32x32, 180x180, 192x192, 512x512, .ico)
+- [x] Open Graph-Bild für Startseite (1200x630)
+- [x] Open Graph-Bilder für Unterseiten (Blog, Vergleich)
+- [x] Assets in Projekt integrieren (index.html, SEO.tsx, site.webmanifest)
