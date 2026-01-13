@@ -6,9 +6,9 @@
 # oder fügen Sie die Variablen in Coolify ein
 
 # ============================================
-# DATENBANK (PostgreSQL) - ERFORDERLICH
+# DATENBANK (MySQL) - ERFORDERLICH
 # ============================================
-DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@your-postgres-host:5432/llm_platform?sslmode=require
+DATABASE_URL=mysql://username:password@your-mysql-host:3306/llm_platform
 
 # ============================================
 # SERVER KONFIGURATION - ERFORDERLICH
@@ -24,8 +24,9 @@ SITE_URL=https://ihre-domain.de
 JWT_SECRET=your-super-secret-jwt-key-min-32-chars
 
 # ============================================
-# E-MAIL KONFIGURATION (SMTP) - OPTIONAL
+# E-MAIL KONFIGURATION (SMTP) - ERFORDERLICH für Magic-Link-Login
 # ============================================
+# Ohne SMTP funktioniert das Magic-Link-Login nicht!
 SMTP_HOST=smtp.example.com
 SMTP_PORT=587
 SMTP_USER=your-smtp-user
@@ -40,17 +41,15 @@ VITE_APP_TITLE=DSGVO-konforme LLM-Plattformen Vergleich
 VITE_APP_LOGO=
 
 # ============================================
-# MANUS INTEGRATION - NUR FÜR MANUS HOSTING
+# HINWEIS: SELF-HOSTED MODUS
 # ============================================
-# Diese Variablen werden automatisch von Manus gesetzt
-# und sind für Self-Hosting nicht erforderlich:
-# OAUTH_SERVER_URL=
-# VITE_APP_ID=
-# OWNER_OPEN_ID=
-# BUILT_IN_FORGE_API_URL=
-# BUILT_IN_FORGE_API_KEY=
-# VITE_ANALYTICS_ENDPOINT=
-# VITE_ANALYTICS_WEBSITE_ID=
-# VITE_FRONTEND_FORGE_API_KEY=
-# VITE_FRONTEND_FORGE_API_URL=
-# VITE_OAUTH_PORTAL_URL=
+# Diese App läuft im Self-Hosted-Modus ohne OAuth.
+# Das Login erfolgt ausschließlich über Magic-Link (E-Mail).
+#
+# Um einen Admin-Benutzer zu erstellen:
+# 1. Loggen Sie sich über Magic-Link ein
+# 2. Führen Sie in der Datenbank aus:
+#    UPDATE members SET role = 'admin' WHERE email = 'ihre-email@domain.de';
+#
+# Die folgenden Manus-spezifischen Variablen sind NICHT erforderlich:
+# OAUTH_SERVER_URL, VITE_APP_ID, OWNER_OPEN_ID, etc.

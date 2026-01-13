@@ -2,12 +2,13 @@
 
 ## Übersicht
 
-Diese Anleitung beschreibt, wie Sie das Projekt auf einem Coolify-Server mit PostgreSQL-Datenbank deployen.
+Diese Anleitung beschreibt, wie Sie das Projekt auf einem Coolify-Server mit MySQL-Datenbank deployen. Die App läuft im **Self-Hosted-Modus** mit Magic-Link-Login (E-Mail-basiert).
 
 ## Voraussetzungen
 
 - Coolify Server (v4.x empfohlen)
-- PostgreSQL Datenbank
+- MySQL 8.0+ Datenbank
+- SMTP-Server für E-Mail-Versand (erforderlich für Magic-Link-Login)
 - Domain mit SSL-Zertifikat (optional, aber empfohlen)
 
 ## Umgebungsvariablen
@@ -16,12 +17,12 @@ Diese Anleitung beschreibt, wie Sie das Projekt auf einem Coolify-Server mit Pos
 
 | Variable | Beschreibung | Beispiel |
 |----------|--------------|----------|
-| `DATABASE_URL` | PostgreSQL Verbindungs-URL | `postgresql://user:pass@host:5432/db?sslmode=require` |
+| `DATABASE_URL` | MySQL Verbindungs-URL | `mysql://user:pass@host:3306/db` |
 | `JWT_SECRET` | Secret für Session-Cookies (min. 32 Zeichen) | `openssl rand -base64 32` |
 | `NODE_ENV` | Produktionsmodus | `production` |
 | `SITE_URL` | Öffentliche URL der Website | `https://ihre-domain.de` |
 
-### E-Mail Konfiguration (für Magic Link Login)
+### E-Mail Konfiguration (ERFORDERLICH für Login)
 
 | Variable | Beschreibung | Beispiel |
 |----------|--------------|----------|
@@ -31,6 +32,8 @@ Diese Anleitung beschreibt, wie Sie das Projekt auf einem Coolify-Server mit Pos
 | `SMTP_PASS` | SMTP Passwort | `your-password` |
 | `ADMIN_EMAIL` | Admin E-Mail für Benachrichtigungen | `admin@ihre-domain.de` |
 | `FROM_EMAIL` | Absender E-Mail | `noreply@ihre-domain.de` |
+
+**Wichtig:** Ohne SMTP-Konfiguration funktioniert das Magic-Link-Login nicht!
 
 ### Optionale Variablen
 
@@ -42,11 +45,11 @@ Diese Anleitung beschreibt, wie Sie das Projekt auf einem Coolify-Server mit Pos
 
 ## Deployment Schritte
 
-### 1. PostgreSQL Datenbank erstellen
+### 1. MySQL Datenbank erstellen
 
 In Coolify:
 1. Gehen Sie zu **Resources** → **New** → **Database**
-2. Wählen Sie **PostgreSQL**
+2. Wählen Sie **MySQL**
 3. Konfigurieren Sie:
    - Name: `llm-platform-db`
    - Database: `llm_platform`
@@ -62,7 +65,7 @@ In Coolify:
 2. Wählen Sie **GitHub** als Quelle
 3. Verbinden Sie das Repository: `CTNMjm/dsgvo-llm`
 4. Konfigurieren Sie:
-   - Build Pack: **Nixpacks** oder **Dockerfile**
+   - Build Pack: **Dockerfile**
    - Port: `3000`
 
 ### 3. Umgebungsvariablen setzen
@@ -70,8 +73,8 @@ In Coolify:
 In den Application Settings → **Environment Variables**:
 
 ```env
-# Datenbank
-DATABASE_URL=postgresql://llm_user:YOUR_PASSWORD@llm-platform-db:5432/llm_platform?sslmode=require
+# Datenbank (MySQL)
+DATABASE_URL=mysql://llm_user:YOUR_PASSWORD@llm-platform-db:3306/llm_platform
 
 # Sicherheit
 JWT_SECRET=IHR_GENERIERTES_SECRET
@@ -81,7 +84,7 @@ NODE_ENV=production
 SITE_URL=https://ihre-domain.de
 VITE_APP_TITLE=DSGVO-konforme LLM-Plattformen
 
-# E-Mail (optional)
+# E-Mail (ERFORDERLICH für Login)
 SMTP_HOST=smtp.example.com
 SMTP_PORT=587
 SMTP_USER=user@example.com
@@ -96,42 +99,66 @@ Nach dem ersten Deployment:
 
 ```bash
 # In Coolify Terminal oder via SSH
-cd /app
-pnpm db:push
+pnpm drizzle-kit migrate
 ```
 
-Oder führen Sie das Seed-Script aus:
+### 5. Seed-Daten importieren
 
 ```bash
-pnpm db:seed
+mysql -h $DB_HOST -u $DB_USER -p$DB_PASSWORD $DB_NAME < drizzle/seeds/seed-all.sql
 ```
 
-### 5. Admin-Benutzer erstellen
+Die Seed-Datei enthält:
+- 12 LLM-Plattformen
+- 48 API-Preiseinträge
+- 3 Blog-Artikel
 
-Nach der ersten Anmeldung können Sie einen Benutzer zum Admin machen:
+### 6. Datenbank-Test
+
+Prüfen Sie, ob alles korrekt eingerichtet ist:
+
+```bash
+pnpm db:test
+```
+
+### 7. Admin-Benutzer erstellen
+
+1. Melden Sie sich über Magic-Link mit Ihrer E-Mail an
+2. Führen Sie in der Datenbank aus:
 
 ```sql
-UPDATE users SET role = 'admin' WHERE email = 'ihre-email@domain.de';
+UPDATE members SET role = 'admin' WHERE email = 'ihre-email@domain.de';
 ```
+
+## Login-System
+
+Diese App verwendet **Magic-Link-Login** (E-Mail-basiert):
+
+1. Benutzer gibt E-Mail-Adresse ein
+2. Ein 6-stelliger Code wird per E-Mail gesendet
+3. Benutzer gibt den Code ein und ist angemeldet
+4. Session ist 30 Tage gültig
+
+**Hinweis:** Es wird kein OAuth benötigt. Die App läuft vollständig selbstständig.
 
 ## Datenbank-Verbindung
 
-### Verbindungs-URL Format
+### Verbindungs-URL Format (MySQL)
 
 ```
-postgresql://[USER]:[PASSWORD]@[HOST]:[PORT]/[DATABASE]?sslmode=require
+mysql://[USER]:[PASSWORD]@[HOST]:[PORT]/[DATABASE]
 ```
 
 ### Beispiele
 
-**Lokale Coolify PostgreSQL:**
+**Lokale Coolify MySQL:**
 ```
-postgresql://llm_user:secret123@llm-platform-db:5432/llm_platform
+mysql://llm_user:secret123@llm-platform-db:3306/llm_platform
 ```
 
-**Externe PostgreSQL (z.B. Supabase, Neon):**
+**Externe MySQL:**
 ```
-postgresql://user:pass@db.supabase.co:5432/postgres?sslmode=require
+mysql://user:pass@db.example.com:3306/llm_platform
 ```
 
 ## SSL/TLS Konfiguration
@@ -139,8 +166,7 @@ postgresql://user:pass@db.supabase.co:5432/postgres?sslmode=require
 Für Produktionsumgebungen empfehlen wir:
 
 1. **Let's Encrypt** über Coolify aktivieren
-2. `sslmode=require` in der DATABASE_URL verwenden
-3. HTTPS für alle externen Verbindungen erzwingen
+2. HTTPS für alle externen Verbindungen erzwingen
 
 ## Troubleshooting
 
@@ -148,7 +174,7 @@ Für Produktionsumgebungen empfehlen wir:
 
 ```bash
 # Verbindung testen
-psql $DATABASE_URL -c "SELECT 1"
+mysql -h $DB_HOST -u $DB_USER -p$DB_PASSWORD $DB_NAME -e "SELECT 1"
 ```
 
 ### Migration fehlgeschlagen
@@ -159,38 +185,38 @@ pnpm drizzle-kit generate
 pnpm drizzle-kit migrate
 ```
 
-### Build-Fehler
+### E-Mail wird nicht gesendet
+
+- Prüfen Sie SMTP-Host und Port
+- Prüfen Sie Benutzername und Passwort
+- Manche Provider erfordern App-Passwörter (z.B. Gmail)
+- Prüfen Sie Firewall-Regeln für ausgehende SMTP-Verbindungen
+
+### Build-Fehler "patches not found"
+
+Die Dockerfile muss den patches-Ordner kopieren:
+```dockerfile
+COPY patches ./patches/
+```
+
+### Build-Fehler "Cannot find module"
 
 Stellen Sie sicher, dass alle erforderlichen Umgebungsvariablen gesetzt sind:
 - `DATABASE_URL`
 - `JWT_SECRET`
-
-## Datenbank mit Seed-Daten füllen
-
-Nach der Migration können Sie die Seed-Daten importieren:
-
-```bash
-# PostgreSQL Seed-Datei importieren
-psql $DATABASE_URL -f drizzle/seeds/seed-postgres.sql
-```
-
-Die Seed-Datei enthält:
-- 12 LLM-Plattformen
-- 48 API-Preiseinträge
-- 3 Blog-Artikel
 
 ## Backup & Restore
 
 ### Datenbank-Backup
 
 ```bash
-pg_dump $DATABASE_URL > backup_$(date +%Y%m%d).sql
+mysqldump -h $DB_HOST -u $DB_USER -p$DB_PASSWORD $DB_NAME > backup_$(date +%Y%m%d).sql
 ```
 
 ### Restore
 
 ```bash
-psql $DATABASE_URL < backup_20260113.sql
+mysql -h $DB_HOST -u $DB_USER -p$DB_PASSWORD $DB_NAME < backup_20260113.sql
 ```
 
 ## Support

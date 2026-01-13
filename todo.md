@@ -295,3 +295,11 @@
 - [x] Dockerfile anpassen: patches-Ordner kopieren
 
 - [x] Dockerfile CMD-Pfad korrigieren (dist/index.js statt dist/server/_core/index.js)
+
+
+## Self-Hosted Mode (Phase 74)
+
+- [x] OAuth-Abhängigkeit entfernen
+- [x] Magic-Link als einziges Login-System
+- [x] Server-Start ohne OAuth-Variablen ermöglichen
+- [x] env-template.txt aktualisieren

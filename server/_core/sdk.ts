@@ -14,6 +14,7 @@ import type {
   GetUserInfoWithJwtRequest,
   GetUserInfoWithJwtResponse,
 } from "./types/manusTypes";
+
 // Utility function
 const isNonEmptyString = (value: unknown): value is string =>
   typeof value === "string" && value.length > 0;
@@ -30,11 +31,15 @@ const GET_USER_INFO_WITH_JWT_PATH = `/webdev.v1.WebDevAuthPublicService/GetUserI
 
 class OAuthService {
   constructor(private client: ReturnType<typeof axios.create>) {
-    console.log("[OAuth] Initialized with baseURL:", ENV.oAuthServerUrl);
-    if (!ENV.oAuthServerUrl) {
-      console.error(
-        "[OAuth] ERROR: OAUTH_SERVER_URL is not configured! Set OAUTH_SERVER_URL environment variable."
-      );
+    if (ENV.isSelfHosted) {
+      console.log("[OAuth] Self-hosted mode - OAuth service disabled");
+    } else {
+      console.log("[OAuth] Initialized with baseURL:", ENV.oAuthServerUrl);
+      if (!ENV.oAuthServerUrl) {
+        console.error(
+          "[OAuth] ERROR: OAUTH_SERVER_URL is not configured! Set OAUTH_SERVER_URL environment variable."
+        );
+      }
     }
   }
 
@@ -47,6 +52,10 @@ class OAuthService {
     code: string,
     state: string
   ): Promise<ExchangeTokenResponse> {
+    if (ENV.isSelfHosted) {
+      throw new Error("OAuth not available in self-hosted mode");
+    }
+    
     const payload: ExchangeTokenRequest = {
       clientId: ENV.appId,
       grantType: "authorization_code",
@@ -65,6 +74,10 @@ class OAuthService {
   async getUserInfoByToken(
     token: ExchangeTokenResponse
   ): Promise<GetUserInfoResponse> {
+    if (ENV.isSelfHosted) {
+      throw new Error("OAuth not available in self-hosted mode");
+    }
+    
     const { data } = await this.client.post<GetUserInfoResponse>(
       GET_USER_INFO_PATH,
       {
@@ -78,7 +91,7 @@ class OAuthService {
 
 const createOAuthHttpClient = (): AxiosInstance =>
   axios.create({
-    baseURL: ENV.oAuthServerUrl,
+    baseURL: ENV.oAuthServerUrl || "http://localhost",
     timeout: AXIOS_TIMEOUT_MS,
   });
 
@@ -235,6 +248,10 @@ class SDKServer {
   async getUserInfoWithJwt(
     jwtToken: string
   ): Promise<GetUserInfoWithJwtResponse> {
+    if (ENV.isSelfHosted) {
+      throw new Error("OAuth not available in self-hosted mode");
+    }
+    
     const payload: GetUserInfoWithJwtRequest = {
       jwtToken,
       projectId: ENV.appId,
@@ -270,8 +287,13 @@ class SDKServer {
     const signedInAt = new Date();
     let user = await db.getUserByOpenId(sessionUserId);
 
-    // If user not in DB, sync from OAuth server automatically
-    if (!user) {
+    // In self-hosted mode, don't try to sync from OAuth server
+    if (!user && ENV.isSelfHosted) {
+      throw ForbiddenError("User not found. Please login via Magic-Link.");
+    }
+
+    // If user not in DB, sync from OAuth server automatically (only in Manus mode)
+    if (!user && !ENV.isSelfHosted) {
       try {
         const userInfo = await this.getUserInfoWithJwt(sessionCookie ?? "");
         await db.upsertUser({
