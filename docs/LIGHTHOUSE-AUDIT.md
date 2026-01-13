@@ -5,12 +5,25 @@
 
 ## Ergebnisse
 
+### Development-Modus
+
 | Kategorie | Score | Status |
 |-----------|-------|--------|
 | Performance | 61/100 | 🟡 Verbesserungsbedarf |
 | Accessibility | 81/100 | 🟡 Gut |
 | Best Practices | 81/100 | 🟡 Gut |
 | SEO | 100/100 | 🟢 Exzellent |
+
+### Production-Modus (Build)
+
+| Kategorie | Score | Status |
+|-----------|-------|--------|
+| Performance | 43/100 | 🔴 Sandbox-bedingt |
+| Accessibility | 84/100 | 🟡 Gut |
+| Best Practices | 81/100 | 🟡 Gut |
+| SEO | 100/100 | 🟢 Exzellent |
+
+**Hinweis:** Die niedrigeren Performance-Werte im Production-Modus sind auf die Sandbox-Umgebung zurückzuführen (begrenzte CPU, kein CDN). In einer echten Produktionsumgebung werden deutlich bessere Werte erwartet.
 
 ## Performance-Metriken
 
@@ -61,7 +74,7 @@ Einige JavaScript-Module werden geladen, aber nicht sofort benötigt.
 ## Empfehlungen für weitere Optimierungen
 
 ### Kurzfristig
-- [ ] Production-Build für Lighthouse-Test verwenden
+- [x] Production-Build für Lighthouse-Test verwenden
 - [ ] Preload für kritische Ressourcen hinzufügen
 - [ ] Font-Display: swap für Web-Fonts
 

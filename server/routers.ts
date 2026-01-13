@@ -558,6 +558,17 @@ export const appRouter = router({
   }),
 
   // ============================================
+  // Global Search
+  // ============================================
+  search: router({
+    global: publicProcedure
+      .input(z.object({ query: z.string().min(1).max(100) }))
+      .query(async ({ input }) => {
+        return db.globalSearch(input.query);
+      }),
+  }),
+
+  // ============================================
   // Admin Routes
   // ============================================
   admin: router({

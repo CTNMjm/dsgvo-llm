@@ -538,3 +538,104 @@ export async function getAdminStats() {
     subscribers: subscriberCount?.count || 0
   };
 }
+
+
+// ============================================
+// Global Search
+// ============================================
+
+export interface GlobalSearchResult {
+  platforms: Array<{
+    id: number;
+    slug: string;
+    name: string;
+    company: string;
+    description: string | null;
+    logoUrl: string | null;
+    type: 'platform';
+  }>;
+  blogPosts: Array<{
+    id: number;
+    slug: string;
+    title: string;
+    excerpt: string | null;
+    category: string | null;
+    type: 'blog';
+  }>;
+  apiModels: Array<{
+    id: number;
+    platformId: number;
+    platformName: string;
+    platformSlug: string;
+    provider: string;
+    modelName: string;
+    inputPricePerMillion: string;
+    outputPricePerMillion: string;
+    type: 'api';
+  }>;
+}
+
+export async function globalSearch(query: string): Promise<GlobalSearchResult> {
+  const db = await getDb();
+  if (!db || !query.trim()) {
+    return { platforms: [], blogPosts: [], apiModels: [] };
+  }
+  
+  const searchTerm = `%${query.trim()}%`;
+  
+  // Search platforms
+  const platformResults = await db.select({
+    id: platforms.id,
+    slug: platforms.slug,
+    name: platforms.name,
+    company: platforms.company,
+    description: platforms.description,
+    logoUrl: platforms.logoUrl,
+  })
+    .from(platforms)
+    .where(and(
+      eq(platforms.isActive, true),
+      sql`(${platforms.name} LIKE ${searchTerm} OR ${platforms.company} LIKE ${searchTerm} OR ${platforms.description} LIKE ${searchTerm})`
+    ))
+    .limit(5);
+  
+  // Search blog posts
+  const blogResults = await db.select({
+    id: blogPosts.id,
+    slug: blogPosts.slug,
+    title: blogPosts.title,
+    excerpt: blogPosts.excerpt,
+    category: blogPosts.category,
+  })
+    .from(blogPosts)
+    .where(and(
+      eq(blogPosts.isPublished, true),
+      sql`(${blogPosts.title} LIKE ${searchTerm} OR ${blogPosts.excerpt} LIKE ${searchTerm} OR ${blogPosts.content} LIKE ${searchTerm})`
+    ))
+    .limit(5);
+  
+  // Search API models (join with platforms for name/slug)
+  const apiResults = await db.select({
+    id: apiPricing.id,
+    platformId: apiPricing.platformId,
+    platformName: platforms.name,
+    platformSlug: platforms.slug,
+    provider: apiPricing.provider,
+    modelName: apiPricing.modelName,
+    inputPricePerMillion: apiPricing.inputPricePerMillion,
+    outputPricePerMillion: apiPricing.outputPricePerMillion,
+  })
+    .from(apiPricing)
+    .innerJoin(platforms, eq(apiPricing.platformId, platforms.id))
+    .where(and(
+      eq(apiPricing.isAvailable, true),
+      sql`(${apiPricing.provider} LIKE ${searchTerm} OR ${apiPricing.modelName} LIKE ${searchTerm})`
+    ))
+    .limit(5);
+  
+  return {
+    platforms: platformResults.map(p => ({ ...p, type: 'platform' as const })),
+    blogPosts: blogResults.map(b => ({ ...b, type: 'blog' as const })),
+    apiModels: apiResults.map(a => ({ ...a, type: 'api' as const })),
+  };
+}

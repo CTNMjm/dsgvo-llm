@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { CostCalculator } from "@/components/CostCalculator";
 import { FeedbackForm } from "@/components/FeedbackForm";
 import { MemberMenu } from "@/components/MemberLogin";
+import { GlobalSearch } from "@/components/GlobalSearch";
 import { Newsletter } from "@/components/Newsletter";
 import { Button } from "@/components/ui/button";
 import {
@@ -189,8 +190,11 @@ export default function Home() {
                 </Link>
                 <FeedbackForm />
               </div>
-              <div className="bg-white/10 backdrop-blur-md rounded-lg px-3 py-2 border border-white/10">
-                <MemberMenu />
+              <div className="flex items-center gap-3">
+                <GlobalSearch className="w-48 md:w-64" />
+                <div className="bg-white/10 backdrop-blur-md rounded-lg px-3 py-2 border border-white/10">
+                  <MemberMenu />
+                </div>
               </div>
             </div>
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 leading-tight">
