@@ -282,9 +282,3 @@
 - [x] .env.example Datei für Coolify mit PostgreSQL erstellen
 
 - [x] SQL-Seed-Dateien für PostgreSQL-Import erstellen
-
-
-## PostgreSQL Migration
-- [x] Drizzle-Schema von MySQL auf PostgreSQL umstellen
-- [x] Drizzle-Konfiguration für PostgreSQL anpassen
-- [x] PostgreSQL-Abhängigkeiten installieren

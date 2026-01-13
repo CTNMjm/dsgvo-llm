@@ -1,5 +1,5 @@
 import { eq, desc, and, like, sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
+import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, users,
   platforms, Platform, InsertPlatform,
@@ -82,8 +82,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       updateSet.lastSignedIn = new Date();
     }
 
-    await db.insert(users).values(values).onConflictDoUpdate({
-      target: users.openId,
+    await db.insert(users).values(values).onDuplicateKeyUpdate({
       set: updateSet,
     });
   } catch (error) {
@@ -352,9 +351,8 @@ export async function subscribeToNewsletter(email: string, name?: string): Promi
   await db.insert(newsletterSubscribers).values({
     email,
     name
-  }).onConflictDoUpdate({
-    target: newsletterSubscribers.email,
-    set: { isActive: true, unsubscribedAt: sql`NULL` }
+  }).onDuplicateKeyUpdate({
+    set: { isActive: true, unsubscribedAt: null }
   });
 }
 
@@ -678,8 +676,11 @@ export async function createPlatform(platform: InsertPlatform): Promise<Platform
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   
-  const result = await db.insert(platforms).values(platform).returning();
-  return result[0];
+  const result = await db.insert(platforms).values(platform);
+  const insertId = result[0].insertId;
+  
+  const created = await db.select().from(platforms).where(eq(platforms.id, insertId)).limit(1);
+  return created[0];
 }
 
 export async function updatePlatform(id: number, platform: Partial<InsertPlatform>): Promise<Platform | undefined> {
