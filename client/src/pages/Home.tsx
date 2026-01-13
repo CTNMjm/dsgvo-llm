@@ -8,6 +8,7 @@ import { exportComparisonToPDF } from "@/lib/pdf-export";
 import { toast } from "sonner";
 import { CostCalculator } from "@/components/CostCalculator";
 import { FeedbackForm } from "@/components/FeedbackForm";
+import { MemberMenu } from "@/components/MemberLogin";
 import { Newsletter } from "@/components/Newsletter";
 import { Button } from "@/components/ui/button";
 import {
@@ -143,12 +144,17 @@ export default function Home() {
         </div>
         <div className="container relative z-10 py-20 md:py-32">
           <div className="max-w-3xl">
-            <div className="flex flex-wrap items-center gap-4 mb-6">
-              <div className="inline-flex items-center rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-sm font-medium text-orange-400 backdrop-blur-sm">
-                <Info className="mr-2 h-4 w-4" />
-                Stand: Januar 2026
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="inline-flex items-center rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-sm font-medium text-orange-400 backdrop-blur-sm">
+                  <Info className="mr-2 h-4 w-4" />
+                  Stand: Januar 2026
+                </div>
+                <FeedbackForm />
               </div>
-              <FeedbackForm />
+              <div className="bg-white/10 backdrop-blur-md rounded-lg px-3 py-2 border border-white/10">
+                <MemberMenu />
+              </div>
             </div>
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 leading-tight">
               DSGVO-konforme <br/>

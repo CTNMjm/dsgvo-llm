@@ -88,3 +88,17 @@
 - [x] Datenbank-Schema für API-Preise (Modell, Input/Output-Preis)
 - [x] API-Preise UI auf Plattform-Detailseite
 - [x] API-Routen (CRUD) für Admin-Interface vorbereitet
+
+## Neue Features (Phase 49+)
+
+### Header-Verbesserungen
+- [x] Anmelde-Button im Header einbauen
+- [x] MemberMenu-Komponente in Navigation integrieren
+
+### API-Preisdaten
+- [x] Preisdaten für alle Plattformen in Datenbank einfügen (34 Einträge)
+- [x] Seed-Script für API-Preise erstellen
+
+### E-Mail-Benachrichtigungen
+- [x] E-Mail bei neuen Kommentaren an Admin senden (bereits implementiert)
+- [x] E-Mail bei neuen Vorschlägen an Admin senden (bereits implementiert)
